@@ -1,0 +1,11 @@
+<div class="container">
+  <h2>Product Details</h2>
+  <p><strong>Product Code:</strong> <%= product.product_code %></p>
+  <p><strong>Product Name:</strong> <%= product.product_name %></p>
+  <p><strong>Product Description:</strong> <%= product.product_description %></p>
+  <p><strong>Product Price:</strong> $<%= product.product_price %></p>
+  <p><strong>Note:</strong> <%= product.note %></p>
+  <p><strong>Status:</strong> <%= product.status %></p>
+  <a href="/products/<%= product.product_id %>/edit" class="btn btn-warning">Edit</a>
+  <a href="/products" class="btn btn-secondary">Back to Products</a>
+</div>

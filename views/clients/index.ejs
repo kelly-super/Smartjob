@@ -1,0 +1,41 @@
+<div class="table-responsive">
+  <a href="/clients/new" class="btn btn-primary mb-3">Add New Client</a>
+  <table class="table table-striped table-hover">
+  <thead class="thead-dark">
+     
+        <tr>
+          
+          <th>Last Name</th>
+          <th>Surname</th>
+          <th>Address</th>
+          <th>Postcode</th>
+          <th>Mobile</th>
+          <th>Email</th>
+          <th>Remark</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% clients.forEach(client => { %>
+          <tr onclick="window.location.href='/clients/<%= client.client_id %>'" style="cursor: pointer;">
+            
+            
+            <td><%= client.client_lastname %></td>
+            <td><%= client.client_surname %></td>
+            <td><%= client.client_address %></td>
+            <td><%= client.client_postcode %></td>
+            <td><%= client.client_mobile %></td>
+            <td><%= client.client_email || 'N/A' %></td>
+            <td><%= client.remark %></td>
+            <td>
+              <a href="/clients/<%= client.client_id %>/edit" class="btn btn-sm btn-warning">Edit</a>
+              <form action="/clients/<%= client.client_id %>/delete" method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this client?')">Delete</button>
+              </form>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+
+  </div>

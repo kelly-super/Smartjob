@@ -1,0 +1,18 @@
+<!-- views/jobs/show.ejs -->
+<div class="container">
+  <h2>Job Details</h2>
+  <div class="card">
+      <div class="card-body">
+          <h5 class="card-title"><%= job.job_category %></h5>
+          <p class="card-text"><strong>Description:</strong> <%= job.job_description %></p>
+          <p class="card-text"><strong>Price:</strong> $<%= job.job_price %></p>
+          <p class="card-text"><strong>Status:</strong> <%= job.job_status %></p>
+          <p class="card-text"><strong>Start Date:</strong> <%= job.job_startdate %></p>
+          <p class="card-text"><strong>Notes:</strong> <%= job.job_notes %></p>
+          <a href="/jobs/<%= job.job_id %>/edit" class="btn btn-primary">Edit</a>
+          <form action="/jobs/<%= job.job_id %>/delete" method="POST" class="d-inline">
+              <button type="submit" class="btn btn-danger">Delete</button>
+          </form>
+      </div>
+  </div>
+</div>

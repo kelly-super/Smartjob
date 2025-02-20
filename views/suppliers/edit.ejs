@@ -1,0 +1,61 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Edit Supplier</h4>
+        <a href="/suppliers/<%= supplier.supplier_id %>" class="btn btn-outline-secondary btn-sm">
+            <i class="bi bi-arrow-left"></i> Back
+        </a>
+    </div>
+    <div class="card-body">
+        <form action="/suppliers/<%= supplier.supplier_id %>" method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Supplier Name *</label>
+                    <input type="text" class="form-control" 
+                           name="supplier_name" value="<%= supplier.supplier_name %>" required>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Contact Person</label>
+                    <input type="text" class="form-control" 
+                           name="supplier_contact_name" value="<%= supplier.supplier_contact_name %>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Contact Phone</label>
+                    <input type="text" class="form-control" 
+                           name="supplier_contact_phone" value="<%= supplier.supplier_contact_phone %>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-control" 
+                           name="supplier_email" value="<%= supplier.supplier_email %>">
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Website</label>
+                    <input type="url" class="form-control" 
+                           name="supplier_website" value="<%= supplier.supplier_website %>">
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Physical Address</label>
+                    <textarea class="form-control" name="supplier_address" 
+                              rows="2"><%= supplier.supplier_address %></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Postal Address</label>
+                    <textarea class="form-control" name="supplier_postaddress" 
+                              rows="2"><%= supplier.supplier_postaddress %></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="Valid" <%= supplier.status === 'Valid' ? 'selected' : '' %>>Valid</option>
+                        <option value="Invalid" <%= supplier.status === 'Invalid' ? 'selected' : '' %>>Invalid</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Update Supplier
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>

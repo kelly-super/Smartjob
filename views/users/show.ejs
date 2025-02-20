@@ -1,0 +1,8 @@
+<div class="container">
+  <h2>User Details</h2>
+  <p><strong>User Code:</strong> <%= user.user_code %></p>
+  <p><strong>User Name:</strong> <%= user.user_name %></p>
+  <p><strong>Status:</strong> <%= user.status %></p>
+  <a href="/users/<%= user.user_id %>/edit" class="btn btn-warning">Edit</a>
+  <a href="/users" class="btn btn-secondary">Back to Users</a>
+</div>

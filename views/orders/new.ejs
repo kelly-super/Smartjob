@@ -1,0 +1,93 @@
+
+    <div class="card-header">
+        <h4>New Purchase Order</h4>
+    </div>
+    <div class="card-body">
+        <form action="/orders" method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Supplier *</label>
+                    <select class="form-select" name="supplier_id" required>
+                        <% suppliers.forEach(supplier => { %>
+                            <option value="<%= supplier.supplier_id %>">
+                                <%= supplier.supplier_name %>
+                            </option>
+                        <% }); %>
+                    </select>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Status *</label>
+                    <select class="form-select" name="order_status" required>
+                        <option value="Pending">Pending</option>
+                        <option value="Completed">Completed</option>
+                        <option value="Cancelled">Cancelled</option>
+                    </select>
+                </div>
+
+                <div class="col-12">
+                    <h5 class="mt-4">Order Items</h5>
+                    <div id="items-container">
+                        <div class="item-row row g-3 mb-3">
+                            <div class="col-md-5">
+                                <input type="text" class="form-control" name="items[0][description]" 
+                                       placeholder="Description" required>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" name="items[0][price]" 
+                                       step="0.01" placeholder="Price" required>
+                            </div>
+                            <div class="col-md-2">
+                                <input type="number" class="form-control" name="items[0][quantity]" 
+                                       placeholder="Qty" required>
+                            </div>
+                            <div class="col-md-3">
+                                <input type="text" class="form-control" name="items[0][remark]" 
+                                       placeholder="Remarks">
+                            </div>
+                        </div>
+                    </div>
+                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="addItemRow()">
+                        <i class="bi bi-plus-lg"></i> Add Item
+                    </button>
+                </div>
+
+                <div class="col-12">
+                    <hr>
+                    <button type="submit" class="btn btn-primary">
+                        <i class="bi bi-save"></i> Create Order
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+
+<script>
+    let itemCount = 1;
+    function addItemRow() {
+        const container = document.getElementById('items-container');
+        const newRow = document.createElement('div');
+        newRow.className = 'item-row row g-3 mb-3';
+        newRow.innerHTML = `
+            <div class="col-md-5">
+                <input type="text" class="form-control" name="items[${itemCount}][description]" 
+                       placeholder="Description" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" class="form-control" name="items[${itemCount}][price]" 
+                       step="0.01" placeholder="Price" required>
+            </div>
+            <div class="col-md-2">
+                <input type="number" class="form-control" name="items[${itemCount}][quantity]" 
+                       placeholder="Qty" required>
+            </div>
+            <div class="col-md-3">
+                <input type="text" class="form-control" name="items[${itemCount}][remark]" 
+                       placeholder="Remarks">
+            </div>
+        `;
+        container.appendChild(newRow);
+        itemCount++;
+    }
+</script>

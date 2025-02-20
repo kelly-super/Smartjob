@@ -1,0 +1,16 @@
+<div class="container">
+  <h2>Quote Details</h2>
+  <p><strong>Client Name:</strong> <%= quote.client_name %></p>
+  <p><strong>Property Address:</strong> <%= quote.quote_property_address %></p>
+  <p><strong>Contact Number:</strong> <%= quote.contact_number %></p>
+  <p><strong>Contact Email:</strong> <%= quote.contact_email %></p>
+  <p><strong>Quote Price:</strong> $<%= quote.quote_price %></p>
+  <h3>Products</h3>
+  <ul>
+    <% quote.products.forEach(product => { %>
+      <li><%= product.description %> - <%= product.remark %></li>
+    <% }) %>
+  </ul>
+  <a href="/quotes/<%= quote.quote_id %>/edit" class="btn btn-warning">Edit</a>
+  <a href="/quotes" class="btn btn-secondary">Back to Quotes</a>
+</div>

@@ -1,0 +1,18 @@
+<div class="container">
+  <h2>Create New User</h2>
+  <form action="/users" method="POST">
+    <div class="mb-3">
+      <label for="user_code" class="form-label">User Code</label>
+      <input type="text" class="form-control" id="user_code" name="user_code" required>
+    </div>
+    <div class="mb-3">
+      <label for="user_name" class="form-label">User Name</label>
+      <input type="text" class="form-control" id="user_name" name="user_name" required>
+    </div>
+    <div class="mb-3">
+      <label for="user_password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="user_password" name="user_password" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Create User</button>
+  </form>
+</div>

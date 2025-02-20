@@ -1,0 +1,35 @@
+<!-- views/jobs/edit.ejs -->
+<div class="container">
+  <h2>Edit Job</h2>
+  <form action="/jobs/<%= job.job_id %>" method="POST">
+      <div class="mb-3">
+          <label for="jobCategory" class="form-label">Job Category</label>
+          <input type="text" class="form-control" id="jobCategory" name="jobCategory" value="<%= job.job_category %>" required>
+      </div>
+      <div class="mb-3">
+          <label for="jobDescription" class="form-label">Job Description</label>
+          <textarea class="form-control" id="jobDescription" name="jobDescription" rows="3" required><%= job.job_description %></textarea>
+      </div>
+      <div class="mb-3">
+          <label for="jobPrice" class="form-label">Job Price</label>
+          <input type="text" class="form-control" id="jobPrice" name="jobPrice" value="<%= job.job_price %>" required>
+      </div>
+      <div class="mb-3">
+          <label for="jobStatus" class="form-label">Job Status</label>
+          <select class="form-select" id="jobStatus" name="jobStatus" required>
+              <option value="pending" <%= job.job_status === 'pending' ? 'selected' : '' %>>Pending</option>
+              <option value="in-progress" <%= job.job_status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
+              <option value="completed" <%= job.job_status === 'completed' ? 'selected' : '' %>>Completed</option>
+          </select>
+      </div>
+      <div class="mb-3">
+          <label for="jobStartDate" class="form-label">Start Date</label>
+          <input type="date" class="form-control" id="jobStartDate" name="jobStartDate" value="<%= job.job_startdate %>" required>
+      </div>
+      <div class="mb-3">
+          <label for="jobNotes" class="form-label">Notes</label>
+          <textarea class="form-control" id="jobNotes" name="jobNotes" rows="3"><%= job.job_notes %></textarea>
+      </div>
+      <button type="submit" class="btn btn-primary">Update Job</button>
+  </form>
+</div>

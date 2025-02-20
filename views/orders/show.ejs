@@ -1,0 +1,66 @@
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Order #<%= order.order_id %></h4>
+        <div>
+            <a href="/orders/<%= order.order_id %>/edit" class="btn btn-warning btn-sm">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5>Order Information</h5>
+                <dl class="row">
+                    <dt class="col-sm-4">Supplier:</dt>
+                    <dd class="col-sm-8"><%= order.supplier_name %></dd>
+                    
+                    <dt class="col-sm-4">Order Date:</dt>
+                    <dd class="col-sm-8"><%= new Date(order.order_date).toLocaleDateString() %></dd>
+                    
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-<%= order.order_status === 'Completed' ? 'success' : 
+                            order.order_status === 'Pending' ? 'warning' : 'danger' %>">
+                            <%= order.order_status %>
+                        </span>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <h5>Total Amount</h5>
+                <h3 class="text-primary">$<%= order.order_total.toFixed(2) %></h3>
+            </div>
+        </div>
+
+        <h5>Order Items</h5>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Price</th>
+                    <th>Quantity</th>
+                    <th>Total</th>
+                    <th>Remarks</th>
+                </tr>
+            </thead>
+            <tbody>
+                <% details.forEach(detail => { %>
+                <tr>
+                    <td><%= detail.description %></td>
+                    <td>$<%= detail.price.toFixed(2) %></td>
+                    <td><%= detail.quantity %></td>
+                    <td>$<%= (detail.price * detail.quantity).toFixed(2) %></td>
+                    <td><%= detail.remark %></td>
+                </tr>
+                <% }); %>
+            </tbody>
+        </table>
+
+        <div class="mt-4">
+            <a href="/orders" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+</div>

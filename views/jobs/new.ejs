@@ -1,0 +1,43 @@
+<!-- views/jobs/new.ejs -->
+<div class="container">
+  <h2>Create New Job</h2>
+  <form action="/jobs" method="POST">
+    <div class="mb-3">
+      <label for="client_id" class="form-label">Client</label>
+      <select class="form-select" id="client_id" name="client_id" required>
+        <% clients.forEach(client => { %>
+          <option value="<%= client.client_id %>"><%= client.client_lastname %></option>
+        <% }) %>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="job_category" class="form-label">Job Category</label>
+      <input type="text" class="form-control" id="job_category" name="job_category" required>
+    </div>
+    <div class="mb-3">
+      <label for="job_description" class="form-label">Job Description</label>
+      <textarea class="form-control" id="job_description" name="job_description" rows="3" required></textarea>
+    </div>
+    <div class="mb-3">
+      <label for="job_price" class="form-label">Job Price</label>
+      <input type="text" class="form-control" id="job_price" name="job_price" required>
+    </div>
+    <div class="mb-3">
+      <label for="job_status" class="form-label">Job Status</label>
+      <select class="form-select" id="job_status" name="job_status" required>
+        <option value="pending">Pending</option>
+        <option value="in-progress">In Progress</option>
+        <option value="completed">Completed</option>
+      </select>
+    </div>
+    <div class="mb-3">
+      <label for="job_startdate" class="form-label">Start Date</label>
+      <input type="date" class="form-control" id="job_startdate" name="job_startdate" required>
+    </div>
+    <div class="mb-3">
+      <label for="job_notes" class="form-label">Notes</label>
+      <textarea class="form-control" id="job_notes" name="job_notes" rows="3"></textarea>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Job</button>
+  </form>
+</div>

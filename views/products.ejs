@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Products</title>
+</head>
+<body>
+  <h1>Products Management</h1>
+  <form action="/products" method="POST">
+    <input type="text" name="user_code" placeholder="User Code" required>
+    <input type="text" name="user_name" placeholder="User Name" required>
+    <input type="password" name="user_password" placeholder="Password" required>
+    <button type="submit">Add Product</button>
+
+  </form>
+  <ul>
+    <% users.forEach(user => { %>
+      <li><%= user.user_name %> (<%= user.user_code %>)</li>
+    <% }) %>
+  </ul>
+</body>
+</html>

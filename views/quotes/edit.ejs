@@ -1,0 +1,140 @@
+
+<div class="container">
+  <h2>Edit Quote</h2>
+  <form action="/quotes/<%= quote.quote_id %>/edit" method="POST">
+ <!-- Client Auto-Complete Selector -->
+ <div class="mb-3">
+  <label for="client_search" class="form-label">Select Client</label>
+  <input type="text" class="form-control" id="client_search" placeholder="Search for clients..." value="<%= quote.client_name %>">
+  <div id="client_list" class="list-group" style="display: none;">
+    <!-- Client options will be dynamically populated here -->
+  </div>
+  <input type="hidden" id="client_id" name="client_id" value="<%= quote.client_id %>">
+  <input type="hidden" id="client_name" name="client_name" value="<%= quote.client_name %>">
+</div>
+
+<!-- Selected Client Display -->
+<div id="selected_client_display" class="mb-3">
+  <div><%= quote.client_name %> (ID: <%= quote.client_id %>)</div>
+</div>
+
+    <div class="mb-3">
+      <label for="quote_property_address" class="form-label">Property Address</label>
+      <input type="text" class="form-control" id="quote_property_address" name="quote_property_address" value="<%= quote.quote_property_address %>">
+    </div>
+    <div class="mb-3">
+      <label for="contact_number" class="form-label">Contact Number</label>
+      <input type="text" class="form-control" id="contact_number" name="contact_number" value="<%= quote.contact_number %>">
+    </div>
+    <div class="mb-3">
+      <label for="contact_email" class="form-label">Contact Email</label>
+      <input type="email" class="form-control" id="contact_email" name="contact_email" value="<%= quote.contact_email %>">
+    </div>
+    <div class="mb-3">
+      <label for="quote_price" class="form-label">Quote Price</label>
+      <input type="number" step="0.01" class="form-control" id="quote_price" name="quote_price" value="<%= quote.quote_price %>" required>
+    </div>
+
+    <!-- Product Selection with Auto-Complete -->
+    <div class="mb-3">
+      <label for="product_search" class="form-label">Select Products</label>
+      <input type="text" class="form-control" id="product_search" placeholder="Search for products...">
+      <div id="product_list" class="list-group" style="display: none;">
+        <!-- Product options will be dynamically populated here -->
+      </div>
+      <input type="hidden" id="selected_products" name="selected_products" value="<%= quote.products.map(p => p.product_id).join(',') %>">
+    </div>
+
+    <!-- Selected Products Display -->
+    <div id="selected_products_display" class="mb-3">
+      <% quote.products.forEach(product => { %>
+        <div><%= product.product_name %> (Code: <%= product.product_code %>)</div>
+      <% }) %>
+    </div>
+    <button type="submit" class="btn btn-primary">Update Quote</button>
+  </form>
+</div>
+
+<!-- JavaScript for Auto-Complete -->
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const clientSearch = document.getElementById('client_search');
+    const clientList = document.getElementById('client_list');
+    const clientIdInput = document.getElementById('client_id');
+    const clientNameInput = document.getElementById('client_name');
+    const selectedClientDisplay = document.getElementById('selected_client_display');
+
+    const productSearch = document.getElementById('product_search');
+    const productList = document.getElementById('product_list');
+    const selectedProductsInput = document.getElementById('selected_products');
+    const selectedProductsDisplay = document.getElementById('selected_products_display');
+
+    let selectedProducts = selectedProductsInput.value.split(',').filter(Boolean);
+
+    // Fetch clients from the server
+    function fetchClients(query) {
+      fetch(`/clients/search?q=${query}`)
+        .then(response => response.json())
+        .then(data => {
+          clientList.innerHTML = '';
+          data.forEach(client => {
+            const option = document.createElement('div');
+            option.className = 'list-group-item list-group-item-action';
+            option.textContent = `${client.client_name} (${client.client_id})`;
+            option.addEventListener('click', () => {
+              clientIdInput.value = client.client_id;
+              clientNameInput.value = client.client_name;
+              selectedClientDisplay.innerHTML = `<div>${client.client_name} (ID: ${client.client_id})</div>`;
+              clientSearch.value = '';
+              clientList.style.display = 'none';
+            });
+            clientList.appendChild(option);
+          });
+          clientList.style.display = 'block';
+        });
+    }
+
+    // Fetch products from the server
+    function fetchProducts(query) {
+      fetch(`/products/search?q=${query}`)
+        .then(response => response.json())
+        .then(data => {
+          productList.innerHTML = '';
+          data.forEach(product => {
+            const option = document.createElement('div');
+            option.className = 'list-group-item list-group-item-action';
+            option.textContent = `${product.product_name} (${product.product_code})`;
+            option.addEventListener('click', () => {
+              selectedProducts.push(product.product_id);
+              selectedProductsInput.value = selectedProducts.join(',');
+              selectedProductsDisplay.innerHTML += `<div>${product.product_name} (${product.product_code})</div>`;
+              productSearch.value = '';
+              productList.style.display = 'none';
+            });
+            productList.appendChild(option);
+          });
+          productList.style.display = 'block';
+        });
+    }
+
+    // Event listener for client search input
+    clientSearch.addEventListener('input', function () {
+      const query = this.value.trim();
+      if (query.length > 2) {
+        fetchClients(query);
+      } else {
+        clientList.style.display = 'none';
+      }
+    });
+
+    // Event listener for product search input
+    productSearch.addEventListener('input', function () {
+      const query = this.value.trim();
+      if (query.length > 2) {
+        fetchProducts(query);
+      } else {
+        productList.style.display = 'none';
+      }
+    });
+  });
+</script>

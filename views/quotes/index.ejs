@@ -1,0 +1,39 @@
+
+<div class="container">
+  <h2>Quotes</h2>
+  <form action="/quotes" method="GET" class="mb-3">
+    <div class="input-group">
+      <input type="text" name="search" class="form-control" placeholder="Search by client name or property address" value="<%= searchQuery %>">
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </form>
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Client Name</th>
+        <th>Property Address</th>
+        <th>Quote Price</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% quotes.forEach(quote => { %>
+        <tr>
+          <td><%= quote.quote_id %></td>
+          <td><%= quote.client_name %></td>
+          <td><%= quote.quote_property_address %></td>
+          <td>$<%= quote.quote_price %></td>
+          <td>
+            <a href="/quotes/<%= quote.quote_id %>" class="btn btn-info btn-sm">View</a>
+            <a href="/quotes/<%= quote.quote_id %>/edit" class="btn btn-warning btn-sm">Edit</a>
+            <form action="/quotes/<%= quote.quote_id %>/delete" method="POST" style="display:inline;">
+              <button type="submit" class="btn btn-danger btn-sm">Delete</button>
+            </form>
+          </td>
+        </tr>
+      <% }) %>
+    </tbody>
+  </table>
+  <a href="/quotes/new" class="btn btn-success">Create New Quote</a>
+</div>

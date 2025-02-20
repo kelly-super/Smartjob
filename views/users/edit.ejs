@@ -1,0 +1,26 @@
+
+<div class="container">
+  <h2>Edit User</h2>
+  <form action="/users/<%= user.user_id %>" method="POST">
+    <div class="mb-3">
+      <label for="user_code" class="form-label">User Code</label>
+      <input type="text" class="form-control" id="user_code" name="user_code" value="<%= user.user_code %>" required>
+    </div>
+    <div class="mb-3">
+      <label for="user_name" class="form-label">User Name</label>
+      <input type="text" class="form-control" id="user_name" name="user_name" value="<%= user.user_name %>" required>
+    </div>
+    <div class="mb-3">
+      <label for="user_password" class="form-label">Password</label>
+      <input type="password" class="form-control" id="user_password" name="user_password">
+    </div>
+    <div class="mb-3">
+      <label for="status" class="form-label">Status</label>
+      <select class="form-select" id="status" name="status" required>
+        <option value="Valid" <%= user.status === 'Valid' ? 'selected' : '' %>>Valid</option>
+        <option value="Invalid" <%= user.status === 'Invalid' ? 'selected' : '' %>>Invalid</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Update User</button>
+  </form>
+</div>

@@ -1,0 +1,38 @@
+  
+<h1 class="text-center mb-4">Products</h1>
+<a href="/products/new" class="btn btn-primary mb-3">Add New Product</a>
+<table class="table table-striped">
+  <thead>
+    <tr>
+      <th>product_code</th>
+      <th>product_name</th>
+      <th>product_description</th>
+      <th>product_price</th>
+      <th>create_date</th>
+      <th>status</th>
+      <th>note</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% products.forEach(product => { %>
+      <tr onclick="window.location.href='/products/<%= product.product_id %>'" style="cursor: pointer;">
+        <td><%= product.product_code %></td>
+        <td><%= product.product_name %></td>
+        <td><%= product.product_description %></td>
+        <td><%= product.product_price %></td>
+        <td><%= product.create_date %></td>
+        <td><%= product.status %></td>
+        <td><%= product.note || 'N/A' %></td>
+        
+        <td>
+          <a href="/products/<%= product.product_id %>/edit" class="btn btn-sm btn-warning">Edit</a>
+          <form action="/products/<%= product.product_id %>/delete" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
+          </form>
+        </td>
+      </tr>
+    <% }) %>
+  </tbody>
+</table>
+

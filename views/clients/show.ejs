@@ -1,0 +1,19 @@
+
+<div class="container">
+    <h2>Client Details</h2>
+    <div class="card">
+
+    <p><strong>Last Name:</strong> <%= clientObj.client_lastname %></p>
+    <p><strong>Surname:</strong> <%= clientObj.client_surname %></p>
+    <p><strong>Address:</strong> <%= clientObj.client_address %></p>
+    <p><strong>Postcode:</strong> <%= clientObj.client_postcode %></p>
+    <p><strong>Mobile:</strong> <%= clientObj.client_mobile %></p>
+    <p><strong>Email:</strong> <%= clientObj.client_email %></p>
+    <p><strong>Remark:</strong> <%= clientObj.remark %></p>
+    <p><strong>Status:</strong> <%= clientObj.status %></p>
+    <a href="/clients/<%= clientObj.client_id %>/edit" class="btn btn-warning">Edit</a>
+    <a href="/clients" class="btn btn-secondary">Back to Clients</a>
+  </div>
+</div>
+  
+  
