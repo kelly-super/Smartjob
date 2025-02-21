@@ -2,10 +2,16 @@
 const express = require('express');
 const db = require('../database');
 const router = express.Router();
+const multer = require('multer');
+const { parse } = require('csv-parse');
+const fs = require('fs');
+
+// Configure multer for file upload
+const upload = multer({ dest: 'uploads/' });
 
 // Create a new client (Form)
 router.get('/new', (req, res) => {
-  res.render('partials/layout', { title: 'New Client', body: 'clients/new' });
+  res.render('partials/layout', { title: 'New Client', body: '../clients/new' });
 });
 
 // Search for clients
@@ -99,6 +105,79 @@ router.get('/clients', (req, res) => {
   });
 });
 
+
+// Import clients from CSV
+router.post('/import', upload.single('clientsFile'), (req, res) => {
+  console.log('Received file:'); // Debugging line
+  if (!req.file) {
+    req.flash('error_msg', 'No file uploaded');
+    return res.redirect('/clients');
+  }
+
+  const results = [];
+  fs.createReadStream(req.file.path)
+    .pipe(parse({
+      columns: true,
+      skip_empty_lines: true
+    }))
+    .on('data', (data) => results.push(data))
+    .on('end', () => {
+      // Process each row
+      const insertPromises = results.map(client => {
+        return new Promise((resolve, reject) => {
+          db.run(
+            `INSERT INTO clients (
+              client_lastname, client_surname, client_mobile, 
+              client_email, client_address, client_postcode, remark
+            ) VALUES (?, ?, ?, ?, ?, ?, ?)`,
+            [
+              client.client_lastname,
+              client.client_surname,
+              client.client_mobile,
+              client.client_email,
+              client.client_address,
+              client.client_postcode,
+              client.remark
+            ],
+            (err) => {
+              if (err) reject(err);
+              else resolve();
+            }
+          );
+        });
+      });
+
+      Promise.all(insertPromises)
+        .then(() => {
+          // Clean up the uploaded file
+          fs.unlinkSync(req.file.path);
+          req.flash('success_msg', `Successfully imported ${results.length} clients`);
+          res.redirect('/clients');
+        })
+        .catch(err => {
+          console.error('Import error:', err);
+          req.flash('error_msg', 'Error importing clients');
+          res.redirect('/clients');
+        });
+    });
+});
+
+// Download CSV template
+router.get('/template', (req, res) => {
+  const headers = [
+    'client_lastname',
+    'client_surname',
+    'client_mobile',
+    'client_email',
+    'client_address',
+    'client_postcode',
+    'remark'
+  ].join(',');
+  
+  res.setHeader('Content-Type', 'text/csv');
+  res.setHeader('Content-Disposition', 'attachment; filename=clients-template.csv');
+  res.send(headers);
+});
 // Get all clients
 router.get('/', (req, res) => {
   db.all("SELECT * FROM clients", [], (err, clients) => {
