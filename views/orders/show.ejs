@@ -1,17 +1,23 @@
 <div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h4>Order #<%= order.order_id %></h4>
-        <div>
-            <a href="/orders/<%= order.order_id %>/edit" class="btn btn-warning btn-sm">
-                <i class="bi bi-pencil"></i> Edit
-            </a>
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Order Details</h4>
+            <div>
+                <a href="/orders/<%= order.order_id %>/edit" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit
+                </a>
+            </div>
         </div>
     </div>
+    
     <div class="card-body">
         <div class="row mb-4">
             <div class="col-md-6">
                 <h5>Order Information</h5>
                 <dl class="row">
+                    <dt class="col-sm-4">Reference No:</dt>
+                    <dd class="col-sm-8"><%= order.reference_no %></dd>
+                    
                     <dt class="col-sm-4">Supplier:</dt>
                     <dd class="col-sm-8"><%= order.supplier_name %></dd>
                     
@@ -21,44 +27,86 @@
                     <dt class="col-sm-4">Status:</dt>
                     <dd class="col-sm-8">
                         <span class="badge bg-<%= order.order_status === 'Completed' ? 'success' : 
-                            order.order_status === 'Pending' ? 'warning' : 'danger' %>">
+                            order.order_status === 'Pending' ? 'warning' : 'secondary' %>">
                             <%= order.order_status %>
                         </span>
                     </dd>
                 </dl>
             </div>
             <div class="col-md-6">
-                <h5>Total Amount</h5>
-                <h3 class="text-primary">$<%= order.order_total.toFixed(2) %></h3>
+                <h5>Payment Information</h5>
+                <dl class="row">
+                    <dt class="col-sm-4">Payment Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-<%= order.payment_status === 'Paid' ? 'success' : 
+                            order.payment_status === 'Partial' ? 'warning' : 'danger' %>">
+                            <%= order.payment_status %>
+                        </span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Payment Method:</dt>
+                    <dd class="col-sm-8"><%= order.payment_method || 'N/A' %></dd>
+                    
+                    <dt class="col-sm-4">Payment Date:</dt>
+                    <dd class="col-sm-8"><%= order.payment_date ? new Date(order.payment_date).toLocaleDateString() : 'N/A' %></dd>
+                </dl>
             </div>
         </div>
 
         <h5>Order Items</h5>
-        <table class="table">
-            <thead>
-                <tr>
-                    <th>Description</th>
-                    <th>Price</th>
-                    <th>Quantity</th>
-                    <th>Total</th>
-                    <th>Remarks</th>
-                </tr>
-            </thead>
-            <tbody>
-                <% details.forEach(detail => { %>
-                <tr>
-                    <td><%= detail.description %></td>
-                    <td>$<%= detail.price.toFixed(2) %></td>
-                    <td><%= detail.quantity %></td>
-                    <td>$<%= (detail.price * detail.quantity).toFixed(2) %></td>
-                    <td><%= detail.remark %></td>
-                </tr>
-                <% }); %>
-            </tbody>
-        </table>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Item Code</th>
+                        <th>Description</th>
+                        <th class="text-end">Unit Price</th>
+                        <th class="text-end">Quantity</th>
+                        <th class="text-end">Total</th>
+                        <th>Remark</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% details.forEach(detail => { %>
+                        <tr>
+                            <td><%= detail.item_code %></td>
+                            <td><%= detail.description %></td>
+                            <td class="text-end">$<%= detail.unit_price.toFixed(2) %></td>
+                            <td class="text-end"><%= detail.quantity %></td>
+                            <td class="text-end">$<%= (detail.unit_price * detail.quantity).toFixed(2) %></td>
+                            <td><%= detail.remark || '' %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>Subtotal:</strong></td>
+                        <td class="text-end">$<%= order.order_subtotal.toFixed(2) %></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>GST:</strong></td>
+                        <td class="text-end">$<%= order.order_gst.toFixed(2) %></td>
+                        <td></td>
+                    </tr>
+                    <tr>
+                        <td colspan="4" class="text-end"><strong>Total:</strong></td>
+                        <td class="text-end">$<%= order.order_amount.toFixed(2) %></td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+
+        <% if (order.remark) { %>
+            <div class="mt-4">
+                <h5>Remarks</h5>
+                <p><%= order.remark %></p>
+            </div>
+        <% } %>
 
         <div class="mt-4">
-            <a href="/orders" class="btn btn-outline-secondary">
+            <a href="/orders" class="btn btn-secondary">
                 <i class="bi bi-arrow-left"></i> Back to List
             </a>
         </div>

@@ -1,53 +1,112 @@
-
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h4>Purchase Orders</h4>
-        <a href="/orders/new" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-circle"></i> New Order
-        </a>
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Purchase Orders</h4>
+            <a href="/orders/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Order
+            </a>
+        </div>
+        
+        <!-- Search Filters -->
+        <form action="/orders" method="GET" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <select name="supplier" class="form-select">
+                        <option value="">All Suppliers</option>
+                        <% suppliers.forEach(supplier => { %>
+                            <option value="<%= supplier.supplier_id %>" 
+                                <%= query.supplier == supplier.supplier_id ? 'selected' : '' %>>
+                                <%= supplier.supplier_name %>
+                            </option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="dateFrom" class="form-control" 
+                        value="<%= query.dateFrom || '' %>">
+                </div>
+                <div class="col-md-3">
+                    <input type="date" name="dateTo" class="form-control" 
+                        value="<%= query.dateTo || '' %>">
+                </div>
+                <div class="col-md-3">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
+
     <div class="card-body">
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>Order #</th>
+                        <th>Reference No</th>
                         <th>Supplier</th>
-                        <th>Date</th>
-                        <th>Total</th>
+                        <th>Order Date</th>
+                        <th>Amount</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <% if (orders.length > 0) { %>
+                    <% if (orders && orders.length > 0) { %>
                         <% orders.forEach(order => { %>
-                        <tr onclick="window.location.href='/orders/<%= order.order_id %>'" style="cursor: pointer;">
-                            <td><%= order.order_id %></td>
-                            <td><%= order.supplier_name %></td>
-                            <td><%= new Date(order.order_date).toLocaleDateString() %></td>
-                            <td>$<%= order.order_total.toFixed(2) %></td>
-                            <td>
-                                <span class="badge bg-<%= order.order_status === 'Completed' ? 'success' : 
-                                    order.order_status === 'Pending' ? 'warning' : 'danger' %>">
-                                    <%= order.order_status %>
-                                </span>
-                            </td>
-                            <td>
-                                <a href="/orders/<%= order.order_id %>/edit" class="btn btn-sm btn-warning">
-                                    Edit
-                                </a>
-                                <form action="/orders/<%= order.order_id%>/delete" method="POST" style="display: inline;">
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this order?')">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
+                            <tr>
+                                <td><%= order.reference_no %></td>
+                                <td><%= order.supplier_name %></td>
+                                <td><%= new Date(order.order_date).toLocaleDateString() %></td>
+                                <td>$<%= order.order_amount?.toFixed(2) %></td>
+                                <td>
+                                    <span class="badge bg-<%= order.order_status === 'Completed' ? 'success' : 
+                                        order.order_status === 'Pending' ? 'warning' : 'secondary' %>">
+                                        <%= order.order_status %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="/orders/<%= order.order_id %>" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="/orders/<%= order.order_id %>/edit" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
                         <% }); %>
                     <% } else { %>
                         <tr>
-                            <td colspan="6" class="text-center text-muted">No orders found</td>
+                            <td colspan="6" class="text-center">No orders found</td>
                         </tr>
                     <% } %>
                 </tbody>
             </table>
         </div>
+       
+        <!-- Pagination -->
+        <% if (totalPages > 1) { %>
+        <nav aria-label="Page navigation" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item <%= currentPage == 1 ? 'disabled' : '' %>">
+                    <a class="page-link" href="?page=<%= currentPage-1 %><%= searchParams %>" tabindex="-1">Previous</a>
+                </li>
+                
+                <% for(let i = 1; i <= totalPages; i++) { %>
+                    <li class="page-item <%= currentPage == i ? 'active' : '' %>">
+                        <a class="page-link" href="?page=<%= i %><%= searchParams %>"><%= i %></a>
+                    </li>
+                <% } %>
+                
+                <li class="page-item <%= currentPage == totalPages ? 'disabled' : '' %>">
+                    <a class="page-link" href="?page=<%= currentPage+1 %><%= searchParams %>">Next</a>
+                </li>
+            </ul>
+        </nav>
+        <% } %>
     </div>
+</div>

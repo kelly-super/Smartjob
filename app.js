@@ -162,21 +162,7 @@ app.get('/suppliers', (req, res) => {
     });
 });
 
-app.get('/orders', (req, res) => {
-    // Fetch jobs from the database (example)
-    db.all("SELECT * FROM orders", [], (err, orders) => {
-        if (err) {
-            res.status(500).send("Error fetching quotes");
-        } else {
-            // Render the `index.ejs` file and pass the `body` variable
-            res.render('partials/layout', { 
-                title: 'Orders', 
-                body: '../orders/index', // Pass the path to the content file
-                orders: orders 
-            });
-        }
-    });
-});
+
 app._router.stack.forEach(function(r) {
     if (r.route && r.route.path) {
       console.log(r.route.path);

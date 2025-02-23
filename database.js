@@ -105,9 +105,16 @@ db.run(`CREATE TABLE IF NOT EXISTS suppliers (
 db.run(`CREATE TABLE IF NOT EXISTS orders (
   order_id INTEGER PRIMARY KEY AUTOINCREMENT,
   supplier_id INTEGER NOT NULL,
-  referrence_no TEXT,
+  reference_no TEXT,
   order_status TEXT,
-  order_total REAL,
+  order_subtotal REAL,
+  order_gst REAL,
+  order_amount REAL,
+  payment_status TEXT,
+  payment_method TEXT,
+  payment_date TEXT,
+  payment_currency TEXT,
+  remark TEXT,
   order_date TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (supplier_id) REFERENCES suppliers(supplier_id)
 )`);
@@ -115,8 +122,9 @@ db.run(`CREATE TABLE IF NOT EXISTS orders (
 db.run(`CREATE TABLE IF NOT EXISTS order_details (
   order_detail_id INTEGER PRIMARY KEY AUTOINCREMENT,
   order_id INTEGER NOT NULL,
+  item_code TEXT ,
   description TEXT,
-  price REAL,
+  unit_price REAL,
   quantity INTEGER,
   remark TEXT,
   create_date TEXT DEFAULT CURRENT_TIMESTAMP,
