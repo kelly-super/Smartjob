@@ -47,17 +47,19 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS jobs (
         job_id INTEGER PRIMARY KEY AUTOINCREMENT,
         client_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
+        quote_id INTEGER,
         job_category  TEXT NOT NULL,
         job_description TEXT,
+        job_address TEXT,
         job_price TEXT,
         job_status TEXT,
         job_createdate default CURRENT_TIMESTAMP,
+        job_inspectiondate TEXT,
         job_startdate TEXT,
         job_completedate TEXT,
         job_notes TEXT,
         FOREIGN KEY(client_id) REFERENCES clients(client_id),
-        FOREIGN KEY(user_id) REFERENCES users(user_id)
+        FOREIGN KEY(quote_id) REFERENCES users(quote_id)
     )`);
 
 
@@ -156,29 +158,9 @@ db.run(`CREATE TABLE IF NOT EXISTS order_details (
     }
   });
 
-  db.get("SELECT COUNT(*) AS count FROM products", (err, row) => {
-    if (err) throw err;
-    if (row.count === 0) {
-      db.run(`
-        INSERT INTO products (product_name, product_code, product_description, product_price, note) VALUES
-        ('BFTA600', 'bfta600', 'BFTA600 with 2 remote', 1280.00, ''),
-        ('Smartphone', 'P002', 'Latest model smartphone', 800.00, '')
-      `);
-    }
-  });
 
-  db.get("SELECT COUNT(*) AS count FROM jobs", (err, row) => {
-    if (err) throw err;
-    if (row.count === 0) {
-      db.run(`
-        INSERT INTO jobs (job_category, client_ID, user_id, job_description, job_price, job_status, job_startdate, job_completedate,job_notes) VALUES
-        ('Repair', 1, 1, 'motor fix', 1680, 'pending', '2025-02-11', NULL,'customer provides parts'),
-        ('Installation', 1, 1, 'Install fence', 3600, 'pending', '2025-02-11', NULL,'customer provides products'),
-        ('Installation', 1, 1, 'Install gate', 1500, 'pending', '2025-02-11', NULL,'customer provides products'),
-        ('Supply and installation', 1, 1, 'supply and install slidinge gate 5000*3000', 8600, 'pending', '2025-02-11', NULL,'customer provides parts')
-      `);
-    }
-  });
+
+  
 
 });
 

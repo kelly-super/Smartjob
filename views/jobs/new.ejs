@@ -1,43 +1,278 @@
 <!-- views/jobs/new.ejs -->
 <div class="container">
-  <h2>Create New Job</h2>
-  <form action="/jobs" method="POST">
-    <div class="mb-3">
-      <label for="client_id" class="form-label">Client</label>
-      <select class="form-select" id="client_id" name="client_id" required>
-        <% clients.forEach(client => { %>
-          <option value="<%= client.client_id %>"><%= client.client_lastname %></option>
-        <% }) %>
-      </select>
+  <div class="card">
+    <div class="card-header">
+        <h4>New Job</h4>
     </div>
-    <div class="mb-3">
-      <label for="job_category" class="form-label">Job Category</label>
-      <input type="text" class="form-control" id="job_category" name="job_category" required>
+    <div class="card-body">
+        <form id="create-job-form">
+            <!-- Client Selection -->
+            <div class="mb-4">
+                <h5 class="border-bottom pb-2">Client Information</h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-3 position-relative">
+                            <label class="form-label">Search Client</label>
+                            <div class="input-group">
+                                <input type="text" 
+                                       class="form-control" 
+                                       id="client_search" 
+                                       placeholder="Search by name or mobile">
+                                <button type="button" 
+                                        class="btn btn-primary" 
+                                        data-bs-toggle="modal" 
+                                        data-bs-target="#addClientModal">
+                                    <i class="bi bi-plus-circle"></i> New Client
+                                </button>
+                            </div>
+                            <div id="searchResults" class="d-none"></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div id="selectedClientCard" class="card d-none">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">Selected Client</h6>
+                                <input type="hidden" id="client_id" name="client_id" required>
+                                <p class="mb-1"><strong>Name:</strong> <span id="display_name"></span></p>
+                                <p class="mb-1"><strong>Mobile:</strong> <span id="display_mobile"></span></p>
+                                <p class="mb-1"><strong>Email:</strong> <span id="display_email"></span></p>
+                                <p class="mb-1"><strong>Address:</strong> <span id="display_address"></span></p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Details -->
+            <div class="mb-4">
+                <h5 class="border-bottom pb-2">Job Details</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="job_category" required>
+                                <option value="">Select Category</option>
+                                <option value="Repair">Repair</option>
+                                <option value="Installation">Installation</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                          <label class="form-label">Related Quote</label>
+                          <input type="text" 
+                                   class="form-control" 
+                                   name="quote_id" 
+                                   placeholder="Quote ID">
+                      </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label">Job Description</label>
+                            <textarea class="form-control" 
+                                      name="job_description" 
+                                      rows="4" 
+                                      required></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Job Address</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="job_address" 
+                                   required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Price</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   name="job_price" 
+                                   step="0.01" 
+                                   required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="job_status" required>
+                                <option value="pending">Pending</option>
+                                <option value="in_progress">In Progress</option>
+                                <option value="completed">Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   name="job_startdate">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Inspection Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   name="job_inspectiondate">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Complete Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   name="job_completedate">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" 
+                                      name="job_notes" 
+                                      rows="3"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="mt-4 text-end">
+                <a href="/jobs" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Create Job</button>
+            </div>
+        </form>
     </div>
-    <div class="mb-3">
-      <label for="job_description" class="form-label">Job Description</label>
-      <textarea class="form-control" id="job_description" name="job_description" rows="3" required></textarea>
+</div>
+
+<!-- Add Client Modal -->
+<div class="modal fade" id="addClientModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add New Client</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="addClientForm">
+                    <!-- Client form fields -->
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveClientBtn">Save Client</button>
+            </div>
+        </div>
     </div>
-    <div class="mb-3">
-      <label for="job_price" class="form-label">Job Price</label>
-      <input type="text" class="form-control" id="job_price" name="job_price" required>
-    </div>
-    <div class="mb-3">
-      <label for="job_status" class="form-label">Job Status</label>
-      <select class="form-select" id="job_status" name="job_status" required>
-        <option value="pending">Pending</option>
-        <option value="in-progress">In Progress</option>
-        <option value="completed">Completed</option>
-      </select>
-    </div>
-    <div class="mb-3">
-      <label for="job_startdate" class="form-label">Start Date</label>
-      <input type="date" class="form-control" id="job_startdate" name="job_startdate" required>
-    </div>
-    <div class="mb-3">
-      <label for="job_notes" class="form-label">Notes</label>
-      <textarea class="form-control" id="job_notes" name="job_notes" rows="3"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Create Job</button>
-  </form>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const clientSearch = document.getElementById('client_search');
+    const searchResults = document.getElementById('searchResults');
+    let searchTimeout;
+
+    // Replace the existing client search code
+    clientSearch.addEventListener('input', function() {
+      clearTimeout(searchTimeout);
+      const searchTerm = this.value.trim();
+      
+      if (searchTerm.length < 2) {
+          searchResults.classList.add('d-none');
+          return;
+      }
+
+      searchTimeout = setTimeout(() => {
+          fetch(`/clients/search?term=${encodeURIComponent(searchTerm)}`)
+              .then(res => res.json())
+              .then(clients => {
+                  if (clients.length === 0) {
+                      searchResults.innerHTML = `
+                          <div class="list-group-item text-muted">
+                              No clients found
+                          </div>`;
+                  } else {
+                      searchResults.innerHTML = clients.map(client => `
+                          <div class="list-group-item list-group-item-action" 
+                               onclick="selectClient(${JSON.stringify(client).replace(/"/g, '&quot;')})">
+                              <div class="d-flex justify-content-between align-items-center">
+                                  <div>
+                                      <strong>${client.client_lastname} ${client.client_surname || ''}</strong>
+                                      <div class="small text-muted">${client.client_address || ''}</div>
+                                  </div>
+                                  <div class="text-muted">${client.client_mobile || ''}</div>
+                              </div>
+                          </div>
+                      `).join('');
+                  }
+                  searchResults.classList.remove('d-none');
+              })
+              .catch(error => {
+                  console.error('Search error:', error);
+                  searchResults.innerHTML = `
+                      <div class="list-group-item text-danger">
+                          Error searching clients
+                      </div>`;
+              });
+      }, 300);
+  });
+
+    // Handle client selection
+    window.selectClient = function(client) {
+        document.getElementById('client_id').value = client.client_id;
+        document.getElementById('display_name').textContent = 
+            `${client.client_lastname} ${client.client_surname || ''}`;
+        document.getElementById('display_mobile').textContent = client.client_mobile || 'N/A';
+        document.getElementById('display_email').textContent = client.client_email || 'N/A';
+        document.getElementById('display_address').textContent = client.client_address || 'N/A';
+        
+        document.getElementById('selectedClientCard').classList.remove('d-none');
+        searchResults.classList.add('d-none');
+        clientSearch.value = `${client.client_lastname} ${client.client_surname || ''}`;
+        
+        // Auto-fill job address with client address
+        document.querySelector('[name="job_address"]').value = client.client_address || '';
+    };
+
+    // Form submission
+    document.getElementById('create-job-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        if (!document.getElementById('client_id').value) {
+            alert('Please select a client');
+            return;
+        }
+
+        const formData = new FormData(this);
+        fetch('/jobs/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `/jobs/${data.jobId}`;
+            } else {
+                throw new Error(data.message || 'Error creating job');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
+    });
+
+    // Handle click outside search results
+    document.addEventListener('click', function(e) {
+        if (!e.target.closest('#client_search') && 
+            !e.target.closest('#searchResults')) {
+            searchResults.classList.add('d-none');
+        }
+    });
+});
+</script>
 </div>

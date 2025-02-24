@@ -2,17 +2,130 @@
 <div class="container">
   <h2>Job Details</h2>
   <div class="card">
-      <div class="card-body">
-          <h5 class="card-title"><%= job.job_category %></h5>
-          <p class="card-text"><strong>Description:</strong> <%= job.job_description %></p>
-          <p class="card-text"><strong>Price:</strong> $<%= job.job_price %></p>
-          <p class="card-text"><strong>Status:</strong> <%= job.job_status %></p>
-          <p class="card-text"><strong>Start Date:</strong> <%= job.job_startdate %></p>
-          <p class="card-text"><strong>Notes:</strong> <%= job.job_notes %></p>
-          <a href="/jobs/<%= job.job_id %>/edit" class="btn btn-primary">Edit</a>
-          <form action="/jobs/<%= job.job_id %>/delete" method="POST" class="d-inline">
-              <button type="submit" class="btn btn-danger">Delete</button>
-          </form>
-      </div>
-  </div>
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Job #<%= job.job_id %></h4>
+            <div class="btn-group">
+                <a href="/jobs/<%= job.job_id %>/edit" class="btn btn-warning">
+                    <i class="bi bi-pencil"></i> Edit Job
+                </a>
+                <% if (job.quote_id) { %>
+                    <a href="/quotes/<%= job.quote_id %>" class="btn btn-info">
+                        <i class="bi bi-file-text"></i> View Quote
+                    </a>
+                <% } %>
+            </div>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Client Information -->
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <h5 class="border-bottom pb-2">Client Information</h5>
+                <dl class="row">
+                    <dt class="col-sm-4">Name:</dt>
+                    <dd class="col-sm-8"><%= job.client_lastname %> <%= job.client_surname %></dd>
+                    
+                    <dt class="col-sm-4">Mobile:</dt>
+                    <dd class="col-sm-8"><%= job.client_mobile || 'N/A' %></dd>
+                    
+                    <dt class="col-sm-4">Email:</dt>
+                    <dd class="col-sm-8"><%= job.client_email || 'N/A' %></dd>
+                </dl>
+            </div>
+            <div class="col-md-6">
+                <h5 class="border-bottom pb-2">Job Details</h5>
+                <dl class="row">
+                    <dt class="col-sm-4">Category:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-primary"><%= job.job_category %></span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge bg-<%= 
+                            job.job_status === 'completed' ? 'success' : 
+                            job.job_status === 'in_progress' ? 'warning' : 
+                            'secondary' %>">
+                            <%= job.job_status %>
+                        </span>
+                    </dd>
+                    
+                    <dt class="col-sm-4">Price:</dt>
+                    <dd class="col-sm-8">$<%= parseFloat(job.job_price).toFixed(2) %></dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Job Details -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5 class="border-bottom pb-2">Location & Description</h5>
+                <dl class="row">
+                    <dt class="col-sm-2">Address:</dt>
+                    <dd class="col-sm-10"><%= job.job_address %></dd>
+                    
+                    <dt class="col-sm-2">Description:</dt>
+                    <dd class="col-sm-10"><%= job.job_description %></dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Dates -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h5 class="border-bottom pb-2">Important Dates</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">Start Date</h6>
+                                <p class="card-text">
+                                    <%= job.job_startdate ? new Date(job.job_startdate).toLocaleDateString() : 'Not set' %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">Inspection Date</h6>
+                                <p class="card-text">
+                                    <%= job.job_inspectiondate ? new Date(job.job_inspectiondate).toLocaleDateString() : 'Not set' %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card bg-light">
+                            <div class="card-body">
+                                <h6 class="card-subtitle mb-2 text-muted">Complete Date</h6>
+                                <p class="card-text">
+                                    <%= job.job_completedate ? new Date(job.job_completedate).toLocaleDateString() : 'Not set' %>
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notes -->
+        <% if (job.job_notes) { %>
+            <div class="row mb-4">
+                <div class="col-12">
+                    <h5 class="border-bottom pb-2">Notes</h5>
+                    <p class="mb-0"><%= job.job_notes %></p>
+                </div>
+            </div>
+        <% } %>
+
+        <div class="mt-4">
+            <a href="/jobs" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
+            </a>
+        </div>
+    </div>
+</div>
 </div>

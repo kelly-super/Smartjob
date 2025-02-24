@@ -1,39 +1,106 @@
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Jobs</h4>
+            <a href="/jobs/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New Job
+            </a>
+        </div>
 
-  <div class="table-responsive">
-    <a href="/jobs/new" class="btn btn-primary mb-3">Add New Job</a>
-    <table class="table table-striped table-hover">
-    <thead class="thead-dark">
-      <tr>
-        <th>Category</th>
-        <th>Description</th>
-        <th>Price</th>
-        <th>Status</th>
-        <th>Start_Date</th>
-        <th>Complete_Date</th>
-        <th>Email</th>
-        <th>Job_Notes</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% jobs.forEach(job => { %>
-        <tr onclick="window.location.href='/jobs/<%= job.job_id %>'" style="cursor: pointer;">
-          <td><%= job.job_category %></td>
-          <td><%= job.job_description %></td>
-          <td><%= job.job_price %></td>
-          <td><%= job.job_status %></td>
-          <td><%= job.job_startdate %></td>
-          <td><%= job.job_completedate %></td>
-          <td><%= job.client_id %></td>
-          <td><%= job.job_notes %></td>
-          <td>
-            <a href="/jobs/<%= job.job_id %>/edit" class="btn btn-sm btn-warning">Edit</a>
-            <form action="/jobs/<%= job.job_id %>/delete" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this job?')">Delete</button>
-            </form>
-        </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-  </div>
+        <!-- Search Filters -->
+        <form action="/jobs" method="GET" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <select name="client_id" class="form-select">
+                        <option value="">All Clients</option>
+                        <% clients.forEach(client => { %>
+                            <option value="<%= client.client_id %>" 
+                                <%= query.client_id == client.client_id ? 'selected' : '' %>>
+                                <%= client.client_lastname %> <%= client.client_surname %>
+                            </option>
+                        <% }); %>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" 
+                           name="job_address" 
+                           class="form-control" 
+                           placeholder="Job Address"
+                           value="<%= query.job_address || '' %>">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" 
+                           name="dateFrom" 
+                           class="form-control" 
+                           value="<%= query.dateFrom || '' %>">
+                </div>
+                <div class="col-md-2">
+                    <input type="date" 
+                           name="dateTo" 
+                           class="form-control" 
+                           value="<%= query.dateTo || '' %>">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Job #</th>
+                        <th>Client</th>
+                        <th>Category</th>
+                        <th>Address</th>
+                        <th>Price</th>
+                        <th>Status</th>
+                        <th>Start Date</th>
+                        <th>Complete Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (jobs && jobs.length > 0) { %>
+                        <% jobs.forEach(job => { %>
+                            <tr>
+                                <td><%= job.job_id %></td>
+                                <td><%= job.client_lastname %> <%= job.client_surname %></td>
+                                <td><%= job.job_category %></td>
+                                <td><%= job.job_address %></td>
+                                <td><%= job.job_price %></td>
+                                <td>
+                                    <span class="badge bg-<%= job.job_status === 'completed' ? 'success' : 
+                                        job.job_status === 'pending' ? 'warning' : 'secondary' %>">
+                                        <%= job.job_status %>
+                                    </span>
+                                </td>
+                                <td><%= job.job_startdate ? new Date(job.job_startdate).toLocaleDateString() : 'Not set' %></td>
+                                <td><%= job.job_completedate ? new Date(job.job_completedate).toLocaleDateString() : 'Not set' %></td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="/jobs/<%= job.job_id %>" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="/jobs/<%= job.job_id %>/edit" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" class="text-center">No jobs found</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,35 +1,169 @@
 <!-- views/jobs/edit.ejs -->
 <div class="container">
-  <h2>Edit Job</h2>
-  <form action="/jobs/<%= job.job_id %>" method="POST">
-      <div class="mb-3">
-          <label for="jobCategory" class="form-label">Job Category</label>
-          <input type="text" class="form-control" id="jobCategory" name="jobCategory" value="<%= job.job_category %>" required>
-      </div>
-      <div class="mb-3">
-          <label for="jobDescription" class="form-label">Job Description</label>
-          <textarea class="form-control" id="jobDescription" name="jobDescription" rows="3" required><%= job.job_description %></textarea>
-      </div>
-      <div class="mb-3">
-          <label for="jobPrice" class="form-label">Job Price</label>
-          <input type="text" class="form-control" id="jobPrice" name="jobPrice" value="<%= job.job_price %>" required>
-      </div>
-      <div class="mb-3">
-          <label for="jobStatus" class="form-label">Job Status</label>
-          <select class="form-select" id="jobStatus" name="jobStatus" required>
-              <option value="pending" <%= job.job_status === 'pending' ? 'selected' : '' %>>Pending</option>
-              <option value="in-progress" <%= job.job_status === 'in-progress' ? 'selected' : '' %>>In Progress</option>
-              <option value="completed" <%= job.job_status === 'completed' ? 'selected' : '' %>>Completed</option>
-          </select>
-      </div>
-      <div class="mb-3">
-          <label for="jobStartDate" class="form-label">Start Date</label>
-          <input type="date" class="form-control" id="jobStartDate" name="jobStartDate" value="<%= job.job_startdate %>" required>
-      </div>
-      <div class="mb-3">
-          <label for="jobNotes" class="form-label">Notes</label>
-          <textarea class="form-control" id="jobNotes" name="jobNotes" rows="3"><%= job.job_notes %></textarea>
-      </div>
-      <button type="submit" class="btn btn-primary">Update Job</button>
-  </form>
+  <div class="card">
+    <div class="card-header">
+        <h4>Edit Job #<%= job.job_id %></h4>
+    </div>
+    <div class="card-body">
+        <form id="edit-job-form">
+            <input type="hidden" name="job_id" value="<%= job.job_id %>">
+            
+            <!-- Client Information (Read-only) -->
+            <div class="mb-4">
+                <h5 class="border-bottom pb-2">Client Information</h5>
+                <div class="card bg-light">
+                    <div class="card-body">
+                        <input type="hidden" name="client_id" value="<%= job.client_id %>">
+                        <dl class="row mb-0">
+                            <dt class="col-sm-3">Name:</dt>
+                            <dd class="col-sm-9"><%= job.client_lastname %> <%= job.client_surname %></dd>
+                            
+                            <dt class="col-sm-3">Mobile:</dt>
+                            <dd class="col-sm-9"><%= job.client_mobile || 'N/A' %></dd>
+                            
+                            <dt class="col-sm-3">Email:</dt>
+                            <dd class="col-sm-9"><%= job.client_email || 'N/A' %></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Job Details -->
+            <div class="mb-4">
+                <h5 class="border-bottom pb-2">Job Details</h5>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Category</label>
+                            <select class="form-select" name="job_category" required>
+                                <option value="Repair" <%= job.job_category === 'Repair' ? 'selected' : '' %>>Repair</option>
+                                <option value="Installation" <%= job.job_category === 'Installation' ? 'selected' : '' %>>Installation</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">Related Quote</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="job_address" 
+                                   value="<%= job.quote_id %>"
+                                   >
+                        </div>
+                    </div>
+                    <div class="col-md-8">
+                        <div class="mb-3">
+                            <label class="form-label">Job Description</label>
+                            <textarea class="form-control" 
+                                      name="job_description" 
+                                      rows="4" 
+                                      required><%= job.job_description %></textarea>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="mb-3">
+                            <label class="form-label">Job Address</label>
+                            <input type="text" 
+                                   class="form-control" 
+                                   name="job_address" 
+                                   value="<%= job.job_address %>"
+                                   required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Price</label>
+                            <input type="number" 
+                                   class="form-control" 
+                                   name="job_price" 
+                                   value="<%= job.job_price %>"
+                                   step="0.01" 
+                                   required>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="mb-3">
+                            <label class="form-label">Status</label>
+                            <select class="form-select" name="job_status" required>
+                                <option value="pending" <%= job.job_status === 'pending' ? 'selected' : '' %>>Pending</option>
+                                <option value="in_progress" <%= job.job_status === 'in_progress' ? 'selected' : '' %>>In Progress</option>
+                                <option value="completed" <%= job.job_status === 'completed' ? 'selected' : '' %>>Completed</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Start Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   name="job_startdate"
+                                   value="<%= job.job_startdate ? job.job_startdate.split('T')[0] : '' %>">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Inspection Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   name="job_inspectiondate"
+                                   value="<%= job.job_inspectiondate ? job.job_inspectiondate.split('T')[0] : '' %>">
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="mb-3">
+                            <label class="form-label">Complete Date</label>
+                            <input type="date" 
+                                   class="form-control" 
+                                   name="job_completedate"
+                                   value="<%= job.job_completedate ? job.job_completedate.split('T')[0] : '' %>">
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="mb-3">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" 
+                                      name="job_notes" 
+                                      rows="3"><%= job.job_notes %></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Form Actions -->
+            <div class="mt-4 text-end">
+                <a href="/jobs/<%= job.job_id %>" class="btn btn-secondary">Cancel</a>
+                <button type="submit" class="btn btn-primary">Save Changes</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    document.getElementById('edit-job-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = new FormData(this);
+        const jobData = Object.fromEntries(formData);
+
+        fetch(`/jobs/${jobData.job_id}/edit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(jobData)
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.success) {
+                window.location.href = `/jobs/${jobData.job_id}`;
+            } else {
+                throw new Error(data.message || 'Error updating job');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert(error.message);
+        });
+    });
+});
+</script>
 </div>
