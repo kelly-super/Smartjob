@@ -35,7 +35,7 @@ router.post('/', (req, res) => {
   });
 //Get all users
 
-router.get('/users', (req, res) => {
+router.get('/', (req, res) => {
   // Fetch jobs from the database (example)
   db.all("SELECT * FROM users", [], (err, users) => {
       if (err) {
@@ -50,6 +50,7 @@ router.get('/users', (req, res) => {
       }
   });
 });
+
 
   // Read a single user
 

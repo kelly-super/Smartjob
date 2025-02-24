@@ -20,12 +20,12 @@ router.get('/search', (req, res) => {
   console.log('Search query:', query); // Debugging line
   const sql = `
     SELECT * FROM clients
-    WHERE client_surname LIKE ? OR client_id LIKE ? OR client_lastname LIKE ?
+    WHERE client_surname LIKE ? OR client_address LIKE ? OR client_lastname LIKE ? or client_mobile LIKE ?
   `;
   console.log('Search query:', sql); 
   const searchTerm = `%${query}%`;
 
-  db.all(sql, [searchTerm, searchTerm, searchTerm], (err, clients) => {
+  db.all(sql, [searchTerm, searchTerm, searchTerm, searchTerm], (err, clients) => {
     if (err) {
       console.error('Database error:', err); // Debugging line
       res.status(500).json({ error: 'Error fetching clients' });

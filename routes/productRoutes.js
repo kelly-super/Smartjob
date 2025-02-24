@@ -24,7 +24,7 @@ router.post('/', async (req, res) => {
 });
 
 //get all products
-router.get('/products', (req, res) => {
+router.get('/', (req, res) => {
     // Fetch jobs from the database (example)
     db.all("SELECT * FROM products", [], (err, products) => {
         if (err) {
