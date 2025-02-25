@@ -25,18 +25,40 @@ router.post('/', async (req, res) => {
 
 //get all products
 router.get('/', (req, res) => {
-    // Fetch jobs from the database (example)
-    db.all("SELECT * FROM products", [], (err, products) => {
+    const { code, name, status } = req.query;
+    let query = `
+        SELECT * FROM products 
+        WHERE 1=1
+    `;
+    const params = [];
+
+    if (code) {
+        query += ` AND product_code LIKE ?`;
+        params.push(`%${code}%`);
+    }
+    if (name) {
+        query += ` AND product_name LIKE ?`;
+        params.push(`%${name}%`);
+    }
+    if (status) {
+        query += ` AND status = ?`;
+        params.push(status);
+    }
+
+    query += ` ORDER BY create_date DESC`;
+
+    db.all(query, params, (err, products) => {
         if (err) {
-            res.status(500).send("Error fetching products");
-        } else {
-            // Render the `index.ejs` file and pass the `body` variable
-            res.render('partials/layout', { 
-                title: 'Products', 
-                body: '../products/index', // Pass the path to the content file
-                products: products 
-            });
+            console.error('Error fetching products:', err);
+            return res.status(500).send('Internal Server Error');
         }
+        
+        res.render('partials/layout', {
+            title: 'Products',
+            body: '../products/index',
+            products,
+            query: req.query
+        });
     });
 }); 
 //read a single product
@@ -103,17 +125,43 @@ router.post('/:id/edit', (req, res) => {
   });
 
 //delete a product
-router.delete('/:id/delete', (req, res) => {
-    db.run('DELETE FROM products WHERE product_id = ?', [req.params.id], (err) => {
+router.post('/:id/delete', (req, res) => {
+    const productId = req.params.id;
+
+    // First check if product exists
+    db.get('SELECT * FROM products WHERE product_id = ?', [productId], (err, product) => {
         if (err) {
-            console.error(err);
-            res.status(500).send('Database error');
-        } else {
-            res.json({ message: 'Product deleted successfully' });
+            console.error('Error checking product:', err);
+            return res.json({ 
+                success: false, 
+                message: 'Database error' 
+            });
         }
+        
+        if (!product) {
+            return res.json({ 
+                success: false, 
+                message: 'Product not found' 
+            });
+        }
+
+        // Delete the product
+        db.run('DELETE FROM products WHERE product_id = ?', [productId], (err) => {
+            if (err) {
+                console.error('Error deleting product:', err);
+                return res.json({ 
+                    success: false, 
+                    message: 'Error deleting product' 
+                });
+            }
+
+            res.json({ 
+                success: true, 
+                message: 'Product deleted successfully' 
+            });
+        });
     });
 });
-
 
 // Search for products
 router.get('/search', (req, res) => {

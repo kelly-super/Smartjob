@@ -1,38 +1,126 @@
-  
-<h1 class="text-center mb-4">Products</h1>
-<a href="/products/new" class="btn btn-primary mb-3">Add New Product</a>
-<table class="table table-striped">
-  <thead>
-    <tr>
-      <th>product_code</th>
-      <th>product_name</th>
-      <th>product_description</th>
-      <th>product_price</th>
-      <th>create_date</th>
-      <th>status</th>
-      <th>note</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    <% products.forEach(product => { %>
-      <tr onclick="window.location.href='/products/<%= product.product_id %>'" style="cursor: pointer;">
-        <td><%= product.product_code %></td>
-        <td><%= product.product_name %></td>
-        <td><%= product.product_description %></td>
-        <td><%= product.product_price %></td>
-        <td><%= product.create_date %></td>
-        <td><%= product.status %></td>
-        <td><%= product.note || 'N/A' %></td>
-        
-        <td>
-          <a href="/products/<%= product.product_id %>/edit" class="btn btn-sm btn-warning">Edit</a>
-          <form action="/products/<%= product.product_id %>/delete" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this product?')">Delete</button>
-          </form>
-        </td>
-      </tr>
-    <% }) %>
-  </tbody>
-</table>
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4>Products</h4>
+            <a href="/products/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> Add Product
+            </a>
+        </div>
+
+        <!-- Search Form -->
+        <form action="/products" method="GET" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" 
+                           class="form-control" 
+                           name="code" 
+                           placeholder="Search by product code"
+                           value="<%= typeof query !== 'undefined' && query.code ? query.code : '' %>">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" 
+                           class="form-control" 
+                           name="name" 
+                           placeholder="Search by product name"
+                           value="<%= typeof query !== 'undefined' && query.name ? query.name : '' %>">
+                </div>
+                <div class="col-md-2">
+                    <select class="form-select" name="status">
+                        <option value="">All Status</option>
+                        <option value="Valid" <%= typeof query !== 'undefined' && query.status === 'Valid' ? 'selected' : '' %>>Valid</option>
+                        <option value="Invalid" <%= typeof query !== 'undefined' && query.status === 'Invalid' ? 'selected' : '' %>>Invalid</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th class="text-end">Price</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (products && products.length > 0) { %>
+                        <% products.forEach(product => { %>
+                            <tr>
+                                <td><%= product.product_code %></td>
+                                <td><%= product.product_name %></td>
+                                <td><%= product.product_description || '-' %></td>
+                                <td class="text-end">$<%= parseFloat(product.product_price).toFixed(2) %></td>
+                                <td>
+                                    <span class="badge bg-<%= product.status === 'Valid' ? 'success' : 'danger' %>">
+                                        <%= product.status %>
+                                    </span>
+                                </td>
+                                <td><%= new Date(product.create_date).toLocaleDateString() %></td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="/products/<%= product.product_id %>" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="/products/<%= product.product_id %>/edit" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button" 
+                                                class="btn btn-sm btn-danger"
+                                                onclick="deleteProduct(<%=product.product_id %>)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" class="text-center">No products found</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+  async function deleteProduct(productId) {
+    if (confirm('Are you sure you want to delete this product?')) {
+        try {
+            const response = await fetch(`/products/${productId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.href = '/products';
+            } else {
+                throw new Error(data.message || 'Error deleting product');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Error deleting product');
+        }
+    }
+}
+</script>
 
