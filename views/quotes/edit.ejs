@@ -132,7 +132,7 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    const quoteId = <%= quote.quote_id %>; // Get quote ID from template
+    const quoteId = '<%= quote.quote_id %>'; // Get quote ID from template
     const quoteItems = document.getElementById('quote_items');
     const addItemBtn = document.getElementById('add_item');
     const itemTemplate = quoteItems.children[0].cloneNode(true);

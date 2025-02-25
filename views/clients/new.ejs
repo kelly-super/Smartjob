@@ -1,35 +1,96 @@
 <!-- views/clients/new.ejs -->
 <div class="container">
   <h2>Create New Client</h2>
-  <form action="/clients" method="POST">
-    <div class="mb-3">
-      <label for="client_lastname" class="form-label">Last Name</label>
-      <input type="text" class="form-control" id="client_lastname" name="client_lastname" required>
+  <div class="card">
+    <div class="card-header">
+        <h4>New Client</h4>
     </div>
-    <div class="mb-3">
-      <label for="client_surname" class="form-label">Surname</label>
-      <input type="text" class="form-control" id="client_surname" name="client_surname">
+    <div class="card-body">
+        <form action="/clients" method="POST" id="create-client-form">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Last Name*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="client_lastname" 
+                           required>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">First Name</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="client_surname">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Mobile</label>
+                    <input type="tel" 
+                           class="form-control" 
+                           name="client_mobile" 
+                           pattern="[0-9+\s-]*">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Email</label>
+                    <input type="email" 
+                           class="form-control" 
+                           name="client_email">
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label">Address</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="client_address">
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Postcode</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="client_postcode" 
+                           pattern="[0-9]*">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Remarks</label>
+                    <textarea class="form-control" 
+                              name="remark" 
+                              rows="3"></textarea>
+                </div>
+
+                <div class="col-12 text-end">
+                    <a href="/clients" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create Client</button>
+                </div>
+            </div>
+        </form>
     </div>
-    <div class="mb-3">
-      <label for="client_address" class="form-label">Address</label>
-      <input type="text" class="form-control" id="client_address" name="client_address">
-    </div>
-    <div class="mb-3">
-      <label for="client_postcode" class="form-label">Postcode</label>
-      <input type="text" class="form-control" id="client_postcode" name="client_postcode">
-    </div>
-    <div class="mb-3">
-      <label for="client_mobile" class="form-label">Mobile</label>
-      <input type="text" class="form-control" id="client_mobile" name="client_mobile">
-    </div>
-    <div class="mb-3">
-      <label for="client_email" class="form-label">Email</label>
-      <input type="email" class="form-control" id="client_email" name="client_email">
-    </div>
-    <div class="mb-3">
-      <label for="remark" class="form-label">Remark</label>
-      <textarea class="form-control" id="remark" name="remark" rows="3"></textarea>
-    </div>
-    <button type="submit" class="btn btn-primary">Create Client</button>
-  </form>
+</div>
+
+<script>
+document.getElementById('create-client-form').addEventListener('submit', function(e) {
+    const email = this.client_email.value;
+    const mobile = this.client_mobile.value;
+    
+    if (email && !isValidEmail(email)) {
+        e.preventDefault();
+        alert('Please enter a valid email address');
+    }
+    
+    if (mobile && !isValidMobile(mobile)) {
+        e.preventDefault();
+        alert('Please enter a valid mobile number');
+    }
+});
+
+function isValidEmail(email) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
+
+function isValidMobile(mobile) {
+    return /^[0-9+\s-]*$/.test(mobile);
+}
+</script>
 </div>

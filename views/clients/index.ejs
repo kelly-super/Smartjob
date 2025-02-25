@@ -1,76 +1,174 @@
-<div class="table-responsive">
-  <div class="d-flex justify-content-between mb-3">
-    <h2>Clients</h2>
-    <div>
-      <a href="/clients/new" class="btn btn-primary me-2">Add New Client</a>
-      <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#importModal">
-        Import Clients
-      </button>
-    </div>
-  </div>
-
-  <!-- Import Modal -->
-  <div class="modal fade" id="importModal" tabindex="-1">
-    <div class="modal-dialog">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h5 class="modal-title">Import Clients</h5>
-          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-        </div>
-        <div class="modal-body">
-          <form action="/clients/import" method="post" enctype="multipart/form-data">
-            <div class="mb-3">
-              <label class="form-label">Select CSV File</label>
-              <input type="file" class="form-control" name="clientsFile" accept=".csv" required>
-              <div class="form-text">
-                CSV should include columns: client_lastname, client_surname, client_mobile, 
-                client_email, client_address, client_postcode, remark
-              </div>
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <div class="btn-group">
+                <a href="/clients/new" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> New Client
+                </a>
+                <button type="button" 
+                        class="btn btn-success" 
+                        data-bs-toggle="modal" 
+                        data-bs-target="#importModal">
+                    <i class="bi bi-file-earmark-arrow-up"></i> Import
+                </button>
             </div>
-            <button type="submit" class="btn btn-primary">Import</button>
-            <a href="/clients/template" class="btn btn-outline-secondary">Download Template</a>
-          </form>
         </div>
-      </div>
+
+        <!-- Search Form -->
+        <form action="/clients" method="GET" class="mb-3">
+            <div class="row g-3">
+                <div class="col-md-3">
+                    <input type="text" 
+                           class="form-control" 
+                           name="name" 
+                           placeholder="Search by name"
+                           value="<%= typeof query !== 'undefined' && query.name ? query.name : '' %>">
+                </div>
+                <div class="col-md-3">
+                    <input type="text" 
+                           class="form-control" 
+                           name="mobile" 
+                           placeholder="Search by mobile"
+                           value="<%= typeof query !== 'undefined' && query.mobile ? query.mobile : '' %>">
+                </div>
+                <div class="col-md-4">
+                    <input type="text" 
+                           class="form-control" 
+                           name="address" 
+                           placeholder="Search by address"
+                           value="<%= typeof query !== 'undefined' && query.address ? query.address : '' %>">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
     </div>
-  </div>
 
-  <table class="table table-striped table-hover">
-  <thead class="thead-dark">
-     
-        <tr>
-          
-          <th>Last Name</th>
-          <th>Surname</th>
-          <th>Address</th>
-          <th>Postcode</th>
-          <th>Mobile</th>
-          <th>Email</th>
-          <th>Remark</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% clients.forEach(client => { %>
-          <tr onclick="window.location.href='/clients/<%= client.client_id %>'" style="cursor: pointer;">
-            
-            
-            <td><%= client.client_lastname %></td>
-            <td><%= client.client_surname %></td>
-            <td><%= client.client_address %></td>
-            <td><%= client.client_postcode %></td>
-            <td><%= client.client_mobile %></td>
-            <td><%= client.client_email || 'N/A' %></td>
-            <td><%= client.remark %></td>
-            <td>
-              <a href="/clients/<%= client.client_id %>/edit" class="btn btn-sm btn-warning">Edit</a>
-              <form action="/clients/<%= client.client_id %>/delete" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this client?')">Delete</button>
-              </form>
-            </td>
-          </tr>
-        <% }) %>
-      </tbody>
-    </table>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Mobile</th>
+                        <th>Email</th>
+                        <th>Address</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (clients && clients.length > 0) { %>
+                        <% clients.forEach(client => { %>
+                            <tr>
+                                <td>
+                                    <%= client.client_lastname %> 
+                                    <%= client.client_surname || '' %>
+                                </td>
+                                <td><%= client.client_mobile || '-' %></td>
+                                <td><%= client.client_email || '-' %></td>
+                                <td>
+                                    <small>
+                                        <%= client.client_address || '-' %>
+                                        <%= client.client_postcode ? `(${client.client_postcode})` : '' %>
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge bg-<%= client.status === 'Valid' ? 'success' : 'danger' %>">
+                                        <%= client.status %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="/clients/<%= client.client_id %>" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="/clients/<%= client.client_id %>/edit" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-danger"
+                                                onclick="deleteClient('<%= client.client_id %>')">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" class="text-center">No clients found</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
-  </div>
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Import Clients</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form action="/clients/import" method="post" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label class="form-label">Select CSV File</label>
+                        <input type="file" 
+                               class="form-control" 
+                               name="clientsFile" 
+                               accept=".csv" 
+                               required>
+                        <div class="form-text">
+                            CSV should include: client_lastname, client_surname, client_mobile, 
+                            client_email, client_address, client_postcode, remark
+                        </div>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <a href="/clients/template" class="btn btn-outline-secondary">
+                            <i class="bi bi-download"></i> Download Template
+                        </a>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-upload"></i> Import
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+async function deleteClient(clientId) {
+    if (confirm('Are you sure you want to delete this client?')) {
+        try {
+            const response = await fetch(`/clients/${clientId}/delete`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            const data = await response.json();
+            
+            if (data.success) {
+                window.location.reload();
+            } else {
+                throw new Error(data.message || 'Error deleting client');
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert(error.message || 'Error deleting client');
+        }
+    }
+}
+</script>
