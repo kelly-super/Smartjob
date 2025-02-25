@@ -23,7 +23,7 @@ html, body {
 }
 
 .navbar-brand img {
-    filter: brightness(0) invert(1);
+    filter: brightness(0) invert(1) hue-rotate(0deg);
 }
 
 /* Improved sidebar styling */

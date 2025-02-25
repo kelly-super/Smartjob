@@ -47,13 +47,14 @@ const loginRoutes = require('./routes/loginRoutes');
 // Protected routes - require authentication
 app.use(authMiddleware);
 app.use('/dashboard', dashboardRoutes);
-app.use('/users', clientRoutes);
+app.use('/users', userRoutes);
 app.use('/clients', clientRoutes);
 app.use('/products', productRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/quotes', quoteRoutes);
 app.use('/suppliers', supplierRoutes);
 app.use('/orders', orderRoutes);
+app.use('/', loginRoutes);
 app.use('/login', loginRoutes);
 app.use('/public', express.static(__dirname + '/public'));
 

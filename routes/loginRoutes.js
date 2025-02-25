@@ -4,7 +4,7 @@ const bcrypt = require('bcryptjs');
 const router = express.Router();
 
 // Show login page
-router.get('/', (req, res) => {
+router.get('/login', (req, res) => {
     // If already logged in, redirect to dashboard
     if (req.session.user) {
         return res.redirect('/dashboard');
@@ -19,7 +19,7 @@ router.get('/', (req, res) => {
 
 
 // Handle login
-router.post('/', async (req, res) => {
+router.post('/login', async (req, res) => {
     console.log('Login attempt:', req.body);
     const { user_code, password } = req.body;
 
@@ -72,10 +72,15 @@ router.post('/', async (req, res) => {
         res.redirect('/login');
     }
 });
+
 // Handle logout
 router.get('/logout', (req, res) => {
     req.session.destroy((err) => {
-        if (err) console.error('Logout error:', err);
+        if (err) {
+            console.error('Logout error:', err);
+            req.flash('error_msg', 'Error during logout');
+        }
+        res.clearCookie('connect.sid'); // Clear session cookie
         res.redirect('/login');
     });
 });

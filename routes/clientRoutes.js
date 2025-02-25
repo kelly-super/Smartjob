@@ -7,7 +7,13 @@ const fs = require('fs');
 
 // Multer configuration
 const storage = multer.diskStorage({
-    destination: 'uploads/',
+    destination: (req, file, cb) => {
+        const uploadDir = './uploads';
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir);
+        }
+        cb(null, uploadDir);
+    },
     filename: (req, file, cb) => {
         cb(null, `clients-${Date.now()}.csv`);
     }
@@ -16,6 +22,7 @@ const storage = multer.diskStorage({
 const upload = multer({ 
     storage,
     fileFilter: (req, file, cb) => {
+        console.log('Multer processing file:', file);
         if (file.mimetype === 'text/csv') {
             cb(null, true);
         } else {
@@ -300,10 +307,11 @@ router.post('/:id/delete', async (req, res) => {
     }
 });
 
-// Import clients
+// Update the import route to use validateCsvClient
 router.post('/import', upload.single('clientsFile'), async (req, res) => {
+    console.log('Importing clients:', req.file);
     if (!req.file) {
-        req.flash('error_msg', 'No file uploaded');
+        req.flash('error_msg', 'Please select a file to import');
         return res.redirect('/clients');
     }
 
@@ -325,11 +333,12 @@ router.post('/import', upload.single('clientsFile'), async (req, res) => {
         });
 
         // Validate and import each row
-        for (let [index, client] of results.entries()) {
-            const rowErrors = validateCsvClient(client);
+        for (const [index, client] of results.entries()) {
+            // Use validateCsvClient here
+            const validationErrors = validateCsvClient(client);
             
-            if (rowErrors.length > 0) {
-                errors.push(`Row ${index + 2}: ${rowErrors.join(', ')}`);
+            if (validationErrors.length > 0) {
+                errors.push(`Row ${index + 2}: ${validationErrors.join(', ')}`);
                 continue;
             }
 
@@ -337,15 +346,16 @@ router.post('/import', upload.single('clientsFile'), async (req, res) => {
                 await new Promise((resolve, reject) => {
                     db.run(`
                         INSERT INTO clients (
-                            client_lastname, 
-                            client_surname, 
-                            client_mobile, 
-                            client_email, 
-                            client_address, 
-                            client_postcode, 
+                            client_lastname,
+                            client_surname,
+                            client_mobile,
+                            client_email,
+                            client_address,
+                            client_postcode,
                             remark,
-                            create_date
-                        ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                            create_date,
+                            status
+                        ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, 'Valid')
                     `, [
                         client.client_lastname,
                         client.client_surname || null,
@@ -366,22 +376,24 @@ router.post('/import', upload.single('clientsFile'), async (req, res) => {
             }
         }
 
-        // Clean up the uploaded file
+        // Clean up uploaded file
         fs.unlinkSync(req.file.path);
 
-        // Report results
         if (errors.length > 0) {
             req.flash('warning_msg', 
-                `Imported ${successCount} clients. Errors: ${errors.length}. Check the log for details.`);
+                `Imported ${successCount} clients. ${errors.length} errors occurred. Check the console for details.`);
             console.log('Import errors:', errors);
         } else {
             req.flash('success_msg', `Successfully imported ${successCount} clients`);
         }
         
         res.redirect('/clients');
+
     } catch (err) {
         console.error('Import error:', err);
-        if (req.file) fs.unlinkSync(req.file.path);
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
         req.flash('error_msg', 'Error importing clients');
         res.redirect('/clients');
     }
@@ -397,10 +409,9 @@ router.get('/template', (req, res) => {
         'client_address',
         'client_postcode',
         'remark'
-    ].join(',');
-    
-    // Add example row
-    const exampleRow = [
+    ];
+
+    const example = [
         'Smith',
         'John',
         '0412345678',
@@ -408,11 +419,11 @@ router.get('/template', (req, res) => {
         '123 Main St',
         '2000',
         'Example client'
-    ].join(',');
-    
+    ];
+
     res.setHeader('Content-Type', 'text/csv');
     res.setHeader('Content-Disposition', 'attachment; filename=clients-template.csv');
-    res.send(`${headers}\n${exampleRow}`);
+    res.send(headers.join(',') + '\n' + example.join(','));
 });
 
 module.exports = router;
