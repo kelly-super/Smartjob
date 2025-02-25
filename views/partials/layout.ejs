@@ -69,7 +69,7 @@
                 <div class="position-sticky pt-3">
                     <ul class="nav flex-column">
                         <li class="nav-item">
-                            <a class="nav-link" href="/">Dashboard</a>
+                            <a class="nav-link" href="/dashboard">Dashboard</a>
                         </li>
                         <li class="nav-item">
                             <a class="nav-link" href="/users">Users</a>
@@ -104,14 +104,14 @@
             <!-- Main Content -->
             <main class="col-md-10 col-12 p-4">
                 <!-- Display success messages -->
-                <% if (success_msg && success_msg.length > 0) { %>
+                <% if (typeof success_msg !== 'undefined' && success_msg.length > 0) { %>
                 <div class="alert alert-success alert-dismissible fade show" role="alert">
                     <%= success_msg %>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 <% } %>
                 <!-- Display error messages -->
-                <% if (error_msg && error_msg.length > 0) { %>
+                <% if (typeof error_msg !== 'undefined' && error_msg.length > 0) { %>
                 <div class="alert alert-danger alert-dismissible fade show" role="alert">
                     <%= error_msg %>
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>

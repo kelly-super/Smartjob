@@ -66,3 +66,30 @@ html, body {
         padding-bottom: 0.5rem;
     }
 }
+
+.card {
+  box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+  margin-bottom: 1.5rem;
+}
+
+.card-header {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.table thead th {
+  background-color: rgba(0, 0, 0, 0.03);
+  border-bottom: none;
+}
+
+.badge {
+  font-weight: 500;
+  padding: 0.5em 0.75em;
+}
+
+/* Chart container */
+.chart-container {
+  position: relative;
+  margin: auto;
+  height: 300px;
+}

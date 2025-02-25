@@ -9,32 +9,31 @@ const fs = require('fs');
 const path = require('path');
 const app = express();
 const port =5000;
+const authMiddleware = require('./middleware/auth');
 
-
-
-// Middleware to parse JSON and URL-encoded request bodies
-app.use(express.urlencoded({ extended: true })); // For form data
-app.use(express.json()); // For JSON data
-// Session setup (required for flash messages)
+// Middleware setup
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 app.use(session({
-    secret: 'your-secret-key', // Replace with a real secret key
+    secret: 'your-secret-key',
     resave: false,
-    saveUninitialized: true,
-    cookie: { secure: false } // Set to true if using HTTPS
-  }));
-  
-  // Flash middleware
-  app.use(flash());
-  
-  // Make flash messages available in all views
-  app.use((req, res, next) => {
+    saveUninitialized: false,
+    cookie: { secure: false } // set to true if using HTTPS
+}));
+app.use(flash());
+
+// View engine setup
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'views'));
+app.use('/public', express.static(path.join(__dirname, 'public')));
+
+// Flash messages middleware
+app.use((req, res, next) => {
     res.locals.success_msg = req.flash('success_msg');
     res.locals.error_msg = req.flash('error_msg');
+    res.locals.user = req.session.user || null;
     next();
-  });
-
-
-
+});
 
 const userRoutes = require('./routes/userRoutes');
 const clientRoutes = require('./routes/clientRoutes');  
@@ -43,34 +42,37 @@ const jobRoutes = require('./routes/jobRoutes');
 const quoteRoutes = require('./routes/quoteRoutes');
 const supplierRoutes = require('./routes/supplierRoutes');
 const orderRoutes = require('./routes/orderRoutes');
-
-
-app.use('/users', userRoutes);
+const dashboardRoutes  = require('./routes/dashboardRoutes');
+const loginRoutes = require('./routes/loginRoutes');
+// Protected routes - require authentication
+app.use(authMiddleware);
+app.use('/dashboard', dashboardRoutes);
+app.use('/users', clientRoutes);
 app.use('/clients', clientRoutes);
 app.use('/products', productRoutes);
 app.use('/jobs', jobRoutes);
 app.use('/quotes', quoteRoutes);
 app.use('/suppliers', supplierRoutes);
 app.use('/orders', orderRoutes);
-
-//middleware
-app.use(bodyParser.urlencoded({extended: true}));
-app.use(bodyParser.json());
-app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.use('/login', loginRoutes);
 app.use('/public', express.static(__dirname + '/public'));
 
-//routes
+// Default route to login if not authenticated
 app.get('/', (req, res) => {
-    res.render('partials/layout', { title: 'Dashboard', body: '../index' });
+  console.log('User login in');
+    if (!req.session.user) {
+      console.log('1');
+        res.redirect('/login');
+       
+    } else {
+      console.log('2');
+        res.redirect('/dashboard');
+        
+    }
 });
 
 
-app._router.stack.forEach(function(r) {
-    if (r.route && r.route.path) {
-      console.log(r.route.path);
-    }
-  });
+
 app.listen(port, () => {
     console.log(`Server running on http://localhost:${port}`);
 });

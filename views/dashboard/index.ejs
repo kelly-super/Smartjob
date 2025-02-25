@@ -1,0 +1,143 @@
+
+  <div class="row g-4">
+    <!-- Statistics Cards -->
+    <div class="col-12">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <div class="card bg-primary text-white">
+                    <div class="card-body">
+                        <h6 class="card-title">Processing Jobs</h6>
+                        <h2 class="card-text mb-0"><%= processingJobs.length %></h2>
+                    </div>
+                </div>
+            </div>
+            <!-- Add more statistics cards as needed -->
+        </div>
+    </div>
+
+    <!-- Processing Jobs Table -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Processing Jobs</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead>
+                            <tr>
+                                <th>Job ID</th>
+                                <th>Client</th>
+                                <th>Category</th>
+                                <th>Start Date</th>
+                                <th>Price</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% processingJobs.forEach(job => { %>
+                                <tr>
+                                    <td>#<%= job.job_id %></td>
+                                    <td>
+                                        <%= job.client_lastname %> <%= job.client_surname %>
+                                    </td>
+                                    <td>
+                                        <span class="badge bg-info">
+                                            <%= job.job_category %>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <%= new Date(job.job_startdate).toLocaleDateString() %>
+                                    </td>
+                                    <td>$<%= parseFloat(job.job_price).toFixed(2) %></td>
+                                    <td>
+                                        <a href="/jobs/<%= job.job_id %>" 
+                                           class="btn btn-sm btn-primary">
+                                            View
+                                        </a>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                            <% if (processingJobs.length === 0) { %>
+                                <tr>
+                                    <td colspan="6" class="text-center">No processing jobs</td>
+                                </tr>
+                            <% } %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Charts -->
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">Financial Overview</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="financialChart" height="100"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const ctx = document.getElementById('financialChart').getContext('2d');
+    
+    // Prepare data for chart
+    const labels = '<%= JSON.stringify(jobIncome.map(item => item.month)) %>';
+    const incomeData = '<%= JSON.stringify(jobIncome.map(item => item.total)) %>';
+    const expenseData = '<%= JSON.stringify(orderExpenses.map(item => item.total)) %>';
+
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Job Income',
+                    data: incomeData,
+                    backgroundColor: 'rgba(40, 167, 69, 0.5)',
+                    borderColor: 'rgb(40, 167, 69)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Order Expenses',
+                    data: expenseData,
+                    backgroundColor: 'rgba(220, 53, 69, 0.5)',
+                    borderColor: 'rgb(220, 53, 69)',
+                    borderWidth: 1
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        callback: function(value) {
+                            return '$' + value.toLocaleString();
+                        }
+                    }
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            return context.dataset.label + ': $' + 
+                                   context.raw.toLocaleString();
+                        }
+                    }
+                }
+            }
+        }
+    });
+});
+</script>
