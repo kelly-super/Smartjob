@@ -1,26 +1,114 @@
+<div class="card">
+    <div class="card-header">
+        <h4>Edit User</h4>
+    </div>
+    <div class="card-body">
+        <form id="edit-user-form">
+            <input type="hidden" name="user_id" value="<%= user.user_id %>">
+            
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">User Code*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="user_code" 
+                           value="<%= user.user_code %>"
+                           readonly>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Name*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="user_name" 
+                           value="<%= user.user_name %>"
+                           required>
+                </div>
 
-<div class="container">
-  <h2>Edit User</h2>
-  <form action="/users/<%= user.user_id %>" method="POST">
-    <div class="mb-3">
-      <label for="user_code" class="form-label">User Code</label>
-      <input type="text" class="form-control" id="user_code" name="user_code" value="<%= user.user_code %>" required>
+                <div class="col-md-6">
+                    <label class="form-label">New Password</label>
+                    <input type="password" 
+                           class="form-control" 
+                           name="user_password"
+                           placeholder="Leave blank to keep current password">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" 
+                           class="form-control" 
+                           name="confirm_password">
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Role</label>
+                    <select class="form-select" name="user_role">
+                        <option value="user" <%= user.user_role === 'user' ? 'selected' : '' %>>User</option>
+                        <option value="admin" <%= user.user_role === 'admin' ? 'selected' : '' %>>Admin</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="Valid" <%= user.status === 'Valid' ? 'selected' : '' %>>Valid</option>
+                        <option value="Invalid" <%= user.status === 'Invalid' ? 'selected' : '' %>>Invalid</option>
+                    </select>
+                </div>
+
+                <div class="col-12 text-end">
+                    <a href="/users/<%= user.user_id %>" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </div>
+        </form>
     </div>
-    <div class="mb-3">
-      <label for="user_name" class="form-label">User Name</label>
-      <input type="text" class="form-control" id="user_name" name="user_name" value="<%= user.user_name %>" required>
-    </div>
-    <div class="mb-3">
-      <label for="user_password" class="form-label">Password</label>
-      <input type="password" class="form-control" id="user_password" name="user_password">
-    </div>
-    <div class="mb-3">
-      <label for="status" class="form-label">Status</label>
-      <select class="form-select" id="status" name="status" required>
-        <option value="Valid" <%= user.status === 'Valid' ? 'selected' : '' %>>Valid</option>
-        <option value="Invalid" <%= user.status === 'Invalid' ? 'selected' : '' %>>Invalid</option>
-      </select>
-    </div>
-    <button type="submit" class="btn btn-primary">Update User</button>
-  </form>
 </div>
+
+<script>
+document.getElementById('edit-user-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    try {
+        const password = this.user_password.value;
+        const confirmPassword = this.confirm_password.value;
+        
+        if (password && password !== confirmPassword) {
+            alert('Passwords do not match');
+            return;
+        }
+
+        const formData = new FormData(this);
+        const userId = this.user_id.value;
+
+        // Remove password fields if empty
+        if (!password) {
+            formData.delete('user_password');
+            formData.delete('confirm_password');
+        }
+
+        const response = await fetch(`/users/${userId}/edit`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = `/users/${userId}`;
+        } else {
+            throw new Error(data.message || 'Error updating user');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error updating user');
+    }
+});
+</script>

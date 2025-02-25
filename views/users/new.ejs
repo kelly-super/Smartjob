@@ -1,18 +1,102 @@
 <div class="container">
-  <h2>Create New User</h2>
-  <form action="/users" method="POST">
-    <div class="mb-3">
-      <label for="user_code" class="form-label">User Code</label>
-      <input type="text" class="form-control" id="user_code" name="user_code" required>
+  <div class="card">
+    <div class="card-header">
+        <h4>Create New User</h4>
     </div>
-    <div class="mb-3">
-      <label for="user_name" class="form-label">User Name</label>
-      <input type="text" class="form-control" id="user_name" name="user_name" required>
+    <div class="card-body">
+        <form id="create-user-form">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">User Code*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="user_code" 
+                           required>
+                </div>
+                
+                <div class="col-md-6">
+                    <label class="form-label">Name*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="user_name" 
+                           required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Password*</label>
+                    <input type="password" 
+                           class="form-control" 
+                           name="user_password" 
+                           required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Confirm Password*</label>
+                    <input type="password" 
+                           class="form-control" 
+                           name="confirm_password" 
+                           required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Role</label>
+                    <select class="form-select" name="user_role">
+                        <option value="user">User</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="Valid">Valid</option>
+                        <option value="Invalid">Invalid</option>
+                    </select>
+                </div>
+
+                <div class="col-12 text-end">
+                    <a href="/users" class="btn btn-secondary">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Create User</button>
+                </div>
+            </div>
+        </form>
     </div>
-    <div class="mb-3">
-      <label for="user_password" class="form-label">Password</label>
-      <input type="password" class="form-control" id="user_password" name="user_password" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Create User</button>
-  </form>
 </div>
+
+<script>
+document.getElementById('create-user-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const password = this.user_password.value;
+    const confirmPassword = this.confirm_password.value;
+    
+    if (password !== confirmPassword) {
+        alert('Passwords do not match');
+        return;
+    }
+
+    try {
+        const formData = new FormData(this);
+        formData.delete('confirm_password'); // Remove confirm password before sending
+
+        const response = await fetch('/users/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(Object.fromEntries(formData))
+        });
+
+        const data = await response.json();
+        
+        if (data.success) {
+            window.location.href = '/users';
+        } else {
+            throw new Error(data.message || 'Error creating user');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Error creating user');
+    }
+});
+</script>

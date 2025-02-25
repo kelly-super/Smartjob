@@ -33,22 +33,112 @@ router.post('/', (req, res) => {
       );
     });
   });
+
+router.post('/create', async (req, res) => {
+    const { 
+        user_code, 
+        user_name, 
+        user_password, 
+        user_role, 
+        status 
+    } = req.body;
+
+    // Validate required fields
+    if (!user_code || !user_name || !user_password) {
+        return res.json({ 
+            success: false, 
+            message: 'Missing required fields' 
+        });
+    }
+
+    try {
+        // Check if user code already exists
+        const existingUser = await new Promise((resolve, reject) => {
+            db.get('SELECT user_code FROM users WHERE user_code = ?', [user_code], (err, row) => {
+                if (err) reject(err);
+                resolve(row);
+            });
+        });
+
+        if (existingUser) {
+            return res.json({ 
+                success: false, 
+                message: 'User code already exists' 
+            });
+        }
+
+        // Insert new user
+        db.run(`
+            INSERT INTO users (
+                user_code,
+                user_name,
+                user_password,
+                user_role,
+                status,
+                create_date
+            ) VALUES (?, ?, ?, ?, ?, CURRENT_TIMESTAMP)`,
+            [user_code, user_name, user_password, user_role || 'user', status || 'Valid'],
+            function(err) {
+                if (err) {
+                    console.error('Error creating user:', err);
+                    return res.json({ 
+                        success: false, 
+                        message: 'Error creating user' 
+                    });
+                }
+                res.json({ 
+                    success: true, 
+                    userId: this.lastID 
+                });
+            }
+        );
+    } catch (err) {
+        console.error('Error:', err);
+        res.json({ 
+            success: false, 
+            message: 'Server error' 
+        });
+    }
+});
+
 //Get all users
 
 router.get('/', (req, res) => {
-  // Fetch jobs from the database (example)
-  db.all("SELECT * FROM users", [], (err, users) => {
-      if (err) {
-          res.status(500).send("Error fetching users");
-      } else {
-          // Render the `index.ejs` file and pass the `body` variable
-          res.render('partials/layout', { 
-              title: 'Users', 
-              body: '../users/index', // Pass the path to the content file
-              users: users 
-          });
-      }
-  });
+    const { search, role, status } = req.query;
+    let query = `
+        SELECT * FROM users 
+        WHERE 1=1
+    `;
+    const params = [];
+
+    if (search) {
+        query += ` AND (user_code LIKE ? OR user_name LIKE ?)`;
+        params.push(`%${search}%`, `%${search}%`);
+    }
+    if (role) {
+        query += ` AND user_role = ?`;
+        params.push(role);
+    }
+    if (status) {
+        query += ` AND status = ?`;
+        params.push(status);
+    }
+
+    query += ` ORDER BY create_date DESC`;
+
+    db.all(query, params, (err, users) => {
+        if (err) {
+            console.error('Error fetching users:', err);
+            return res.status(500).send('Internal Server Error');
+        }
+        
+        res.render('partials/layout', {
+            title: 'Users',
+            body: '../users/index',
+            users,
+            query: req.query // Pass the query parameters to the template
+        });
+    });
 });
 
 
@@ -91,6 +181,66 @@ router.put('/:id', async (req, res) => {
     }
 }); 
 
+router.post('/:id/edit', async (req, res) => {
+    const userId = req.params.id;
+    const { 
+        user_name, 
+        user_password, 
+        user_role, 
+        status 
+    } = req.body;
+
+    try {
+        // Start building the query and params
+        let query = `
+            UPDATE users 
+            SET user_name = ?,
+                user_role = ?,
+                status = ?,
+                update_date = CURRENT_TIMESTAMP
+        `;
+        let params = [user_name, user_role, status];
+
+        // Add password to update if provided
+        if (user_password) {
+            query += `, user_password = ?`;
+            params.push(user_password);
+        }
+
+        // Add WHERE clause
+        query += ` WHERE user_id = ?`;
+        params.push(userId);
+
+        // Execute the update
+        db.run(query, params, function(err) {
+            if (err) {
+                console.error('Error updating user:', err);
+                return res.json({ 
+                    success: false, 
+                    message: 'Error updating user' 
+                });
+            }
+
+            if (this.changes === 0) {
+                return res.json({ 
+                    success: false, 
+                    message: 'User not found' 
+                });
+            }
+
+            res.json({ 
+                success: true, 
+                userId: userId 
+            });
+        });
+    } catch (err) {
+        console.error('Error:', err);
+        res.json({ 
+            success: false, 
+            message: 'Server error' 
+        });
+    }
+});
 
 //delete a user
 router.delete('/:id/delete', async (req, res) => {

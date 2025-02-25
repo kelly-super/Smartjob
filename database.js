@@ -10,6 +10,7 @@ db.serialize(() => {
         user_id INTEGER PRIMARY KEY AUTOINCREMENT, 
         user_code TEXT UNIQUE NOT Null,
         user_name TEXT NOT NULL,
+        user_role TEXT,
         create_date default CURRENT_TIMESTAMP,
         update_date TEXT,
         status default 'Valid',
@@ -140,9 +141,9 @@ db.run(`CREATE TABLE IF NOT EXISTS order_details (
     if (err) throw err;
     if (row.count === 0) {
       db.run(`
-        INSERT INTO users (user_code, user_name, user_password) VALUES
-        ('U001', 'NovaGate', '123'),
-        ('U002', 'Kelly', '123')
+        INSERT INTO users (user_code, user_name, user_role,user_password) VALUES
+        ('U001', 'NovaGate','admin', '123'),
+        ('U002', 'Kelly', 'admin','123')
       `);
     }
   });

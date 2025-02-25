@@ -1,32 +1,91 @@
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4>Users</h4>
+            <a href="/users/new" class="btn btn-primary">
+                <i class="bi bi-plus-circle"></i> New User
+            </a>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <!-- Search Form -->
+        <form action="/users" method="GET" class="mb-4">
+            <div class="row g-3">
+                <div class="col-md-4">
+                    <input type="text" 
+                           class="form-control" 
+                           name="search" 
+                           placeholder="Search by code or name"
+                           value="<%= typeof query !== 'undefined' && query.search ? query.search : '' %>">
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="role">
+                        <option value="">All Roles</option>
+                        <option value="admin" <%= typeof query !== 'undefined' && query.role === 'admin' ? 'selected' : '' %>>Admin</option>
+                        <option value="user" <%= typeof query !== 'undefined' && query.role === 'user' ? 'selected' : '' %>>User</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <select class="form-select" name="status">
+                        <option value="">All Status</option>
+                        <option value="Valid" <%= typeof query !== 'undefined' && query.status === 'Valid' ? 'selected' : '' %>>Valid</option>
+                        <option value="Invalid" <%= typeof query !== 'undefined' && query.status === 'Invalid' ? 'selected' : '' %>>Invalid</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-search"></i> Search
+                    </button>
+                </div>
+            </div>
+        </form>
 
-  <div class="table-responsive">
-    <a href="/users/new" class="btn btn-primary mb-3">Add New Users</a>
-    <table class="table table-striped table-hover">
-    <thead class="thead-dark">
-      <tr>
-        <th>User_Code</th>
-        <th>User_Name</th>
-        <th>CreateTime</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      <% users.forEach(user => { %>
-        <tr onclick="window.location.href='/users/<%= user.user_id %>'" style="cursor: pointer;">
-          <td><%= user.user_code %></td>
-          <td><%= user.user_name %></td>
-          <td><%= user.create_date %></td>
-          <td><%= user.status %></td>
-          
-          <td>
-            <a href="/users/<%= user.user_id %>/edit" class="btn btn-sm btn-warning">Edit</a>
-            <form action="/users/<%= user.user_id %>/delete" method="POST" style="display: inline;">
-                <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this user?')">Delete</button>
-            </form>
-        </td>
-        </tr>
-      <% }) %>
-    </tbody>
-  </table>
-  </div>
+        <!-- Users Table -->
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Code</th>
+                        <th>Name</th>
+                        <th>Role</th>
+                        <th>Status</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (users && users.length > 0) { %>
+                        <% users.forEach(user => { %>
+                            <tr>
+                                <td><%= user.user_code %></td>
+                                <td><%= user.user_name %></td>
+                                <td><%= user.user_role || 'N/A' %></td>
+                                <td>
+                                    <span class="badge bg-<%= user.status === 'Valid' ? 'success' : 'danger' %>">
+                                        <%= user.status %>
+                                    </span>
+                                </td>
+                                <td><%= new Date(user.create_date).toLocaleDateString() %></td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="/users/<%= user.user_id %>" class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="/users/<%= user.user_id %>/edit" class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="6" class="text-center">No users found</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
