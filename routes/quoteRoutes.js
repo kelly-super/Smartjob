@@ -3,7 +3,7 @@ const db = require('../database');
 const router = express.Router();
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
-
+const path = require('path');
 // Display all quotes (with search functionality)
 router.get('/', async (req, res) => {
     try {
@@ -480,78 +480,182 @@ router.get('/:id/pdf', (req, res) => {
 });
 
 // Helper function to generate PDF
-function generateQuotePDF(quoteId, callback) {
-    db.get(`
-        SELECT q.*, c.*, GROUP_CONCAT(qi.item_name || '|' || 
-               qi.item_description || '|' || qi.item_price || '|' || 
-               qi.item_discount_price || '|' || qi.item_remark, ';;') as items
-        FROM quotes q
-        LEFT JOIN clients c ON q.client_id = c.client_id
-        LEFT JOIN quote_items qi ON q.quote_id = qi.quote_id
-        WHERE q.quote_id = ?
-        GROUP BY q.quote_id`,
-    [quoteId], (err, quote) => {
-        if (err) return callback(err);
+async function generateQuotePDF(quoteId) {
+    try {
+        // Get quote, items and company profile data
+        const [quote, items, profile] = await Promise.all([
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT q.*, c.client_lastname, c.client_surname, 
+                           c.client_address, c.client_mobile, c.client_email
+                    FROM quotes q
+                    LEFT JOIN clients c ON q.client_id = c.client_id
+                    WHERE q.quote_id = ?
+                `, [quoteId], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
+            }),
+            new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT *
+                    FROM quote_items
+                    WHERE quote_id = ?
+                    ORDER BY quote_item_id
+                `, [quoteId], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows);
+                });
+            }),
+            new Promise((resolve, reject) => {
+                db.get('SELECT * FROM companies LIMIT 1', [], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
+            })
+        ]);
 
-        const doc = new PDFDocument();
-        const pdfPath = `./uploads/quotes/quote_${quoteId}.pdf`;
+        const doc = new PDFDocument({
+            size: 'A4',
+            margin: 50
+        });
+console.log("profile.company_email=========",profile.company_email);
+        // Set up the PDF file
+        const pdfDir = path.join(__dirname, '../public/quotepdfs');
+        if (!fs.existsSync(pdfDir)) {
+            fs.mkdirSync(pdfDir, { recursive: true });
+        }
+        const pdfPath = path.join(pdfDir, `quote-${quoteId}.pdf`);
         const writeStream = fs.createWriteStream(pdfPath);
-
         doc.pipe(writeStream);
 
-        // Add company logo
-        doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 150 });
+        // Add company logo and header
+        doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 80 });
 
-        // Add quote header
-        doc.fontSize(20).text('Quote', 50, 150);
-        doc.fontSize(12).text(`Quote #: ${quoteId}`, 50, 180);
-        doc.text(`Date: ${new Date().toLocaleDateString()}`, 50, 200);
+        // Add company information (right-aligned)
+        doc.fontSize(10)
+           .text(profile.company_name, 400, 50, { align: 'right' })
+           .text(profile.company_address, 400, 65, { align: 'right' })
+           .text(`Phone: ${profile.company_phone}`, 400, 80, { align: 'right' })
+           .text(`Email: ${profile.company_email}`, 400, 95, { align: 'right' })
+           .text(`GST: ${profile.company_gst}`, 400, 110, { align: 'right' });
 
-        // Add client information
-        doc.fontSize(14).text('Client Information', 50, 240);
-        doc.fontSize(12)
-           .text(`Name: ${quote.client_name}`)
-           .text(`Address: ${quote.quote_property_address}`)
-           .text(`Phone: ${quote.contact_number}`)
-           .text(`Email: ${quote.contact_email}`);
+        // Add quote title
+        doc.fontSize(20)
+           .text('QUOTE', 50, 150, { align: 'center' })
+           .moveDown();
 
-        // Add items table
-        doc.moveDown(2);
-        doc.fontSize(14).text('Items');
-        
-        let yPosition = doc.y + 20;
-        const items = quote.items.split(';;').map(item => item.split('|'));
-        
-        // Table headers
+        // Create two columns for Quote ID and Bill To
         doc.fontSize(12);
-        doc.text('Item', 50, yPosition);
-        doc.text('Description', 150, yPosition);
-        doc.text('Price', 350, yPosition);
-        doc.text('Discount', 420, yPosition);
-        
-        yPosition += 20;
-        
-        // Table rows
+
+        // Left column - Quote details
+        doc.text('Quote Details:', 50, 200)
+           .fontSize(10)
+           .text(`Quote #: ${quoteId}`, 50, 220)
+           .text(`Date: ${new Date().toLocaleDateString()}`, 50, 235)
+           .text(`Property: ${quote.quote_property_address || ''}`, 50, 250);
+
+        // Right column - Client information
+        doc.fontSize(12)
+           .text('Bill To:', 300, 200)
+           .fontSize(10)
+           .text(`${quote.client_lastname} ${quote.client_surname}`, 300, 220)
+           .text(quote.client_address || '', 300, 235)
+           .text(`Phone: ${quote.client_mobile || ''}`, 300, 250)
+           .text(`Email: ${quote.client_email || ''}`, 300, 265);
+
+        // Add items table with more space between columns
+        let y = 320; // Moved down to accommodate the header sections
+
+        // Add table headers with background
+        doc.fillColor('#f0f0f0')
+           .rect(50, y, 500, 20)
+           .fill()
+           .fillColor('#000000');
+
+        // Table headers
+        doc.fontSize(10)
+           .text('Item', 60, y + 5)
+           .text('Description', 160, y + 5)
+           .text('Price', 350, y + 5, { width: 70, align: 'right' })
+           .text('Discount', 420, y + 5, { width: 70, align: 'right' })
+           .text('Amount', 490, y + 5, { width: 60, align: 'right' });
+
+        // Add horizontal line
+        doc.moveTo(50, y + 20).lineTo(550, y + 20).stroke();
+        y += 30;
+
+        // Table rows with aligned columns
+        let subtotal = 0;
         items.forEach(item => {
-            doc.text(item[0], 50, yPosition);
-            doc.text(item[1], 150, yPosition);
-            doc.text(`$${parseFloat(item[2]).toFixed(2)}`, 350, yPosition);
-            doc.text(`$${parseFloat(item[3]).toFixed(2)}`, 420, yPosition);
-            yPosition += 20;
+            const amount = item.item_price - (item.item_discount_price || 0);
+            subtotal += amount;
+
+            doc.text(item.item_name, 60, y, { width: 90 })
+               .text(item.item_description, 160, y, { width: 180 })
+               .text(`$${item.item_price.toFixed(2)}`, 350, y, { width: 70, align: 'right' })
+               .text(`$${(item.item_discount_price || 0).toFixed(2)}`, 420, y, { width: 70, align: 'right' })
+               .text(`$${amount.toFixed(2)}`, 490, y, { width: 60, align: 'right' });
+            
+            y += 25; // Increased spacing between rows
         });
 
-        // Add totals
-        doc.moveDown(2);
-        doc.text(`Subtotal: $${quote.quote_price}`, { align: 'right' });
-        doc.text(`GST (15%): $${(quote.quote_price * 0.15).toFixed(2)}`, { align: 'right' });
-        doc.text(`Total: $${(quote.quote_price * 1.15).toFixed(2)}`, { align: 'right' });
+        // Add totals section with better formatting
+        const gst = subtotal * 0.15;
+        const total = subtotal + gst;
 
-        // Finalize PDF
+        y += 10;
+        doc.moveTo(350, y).lineTo(550, y).stroke();
+        y += 10;
+
+        // Right-aligned totals
+        doc.fontSize(10)
+           .text('Subtotal:', 350, y, { width: 140, align: 'right' })
+           .text(`$${subtotal.toFixed(2)}`, 490, y, { width: 60, align: 'right' });
+        y += 20;
+        doc.text('GST (15%):', 350, y, { width: 140, align: 'right' })
+           .text(`$${gst.toFixed(2)}`, 490, y, { width: 60, align: 'right' });
+        y += 20;
+        doc.fontSize(12)
+           .text('Total:', 350, y, { width: 140, align: 'right' })
+           .text(`$${total.toFixed(2)}`, 490, y, { width: 60, align: 'right' });
+
+        // Add quote notes
+        if (profile.quote_notes) {
+            y += 50;
+            doc.fontSize(10)
+               .text('Terms & Conditions:', 50, y)
+               .text(profile.quote_notes, 50, y + 15);
+        }
+
+        // Add banking details
+        y += 100;
+        doc.fontSize(10)
+           .text('Banking Details:', 50, y)
+           .text(`Bank: ${profile.bank_name}`, 50, y + 15)
+           .text(`Account: ${profile.bank_account}`, 50, y + 30);
+
         doc.end();
+        console.log("pdfPath=========",pdfPath);
+        // Update quote record with PDF path
+        await new Promise((resolve, reject) => {
+            db.run(`
+                UPDATE quotes 
+                SET quote_pdf = ?, 
+                    quote_date = CURRENT_TIMESTAMP 
+                WHERE quote_id = ?
+            `, [`/quotepdfs/quote-${quoteId}.pdf`, quoteId], (err) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
 
-        writeStream.on('finish', () => callback(null, pdfPath));
-        writeStream.on('error', callback);
-    });
+        return pdfPath;
+
+    } catch (err) {
+        console.error('Error generating PDF:', err);
+        throw err;
+    }
 }
 
 router.get('/generate-pdf', (req, res) => {
@@ -601,6 +705,50 @@ router.get('/generate-pdf', (req, res) => {
   doc.text('Final Price: $115.00', 50, y + 60);
 
   doc.end();
+});
+
+// Generate PDF
+router.post('/:id/generate-pdf', async (req, res) => {
+    const quoteId = req.params.id;
+    
+    try {
+        
+        
+
+        generateQuotePDF(quoteId);
+
+        res.json({ success: true });
+    } catch (err) {
+        console.error('PDF generation error:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: 'Error generating PDF' 
+        });
+    }
+});
+
+// Download PDF
+router.get('/:id/download-pdf', async (req, res) => {
+    const quoteId = req.params.id;
+    
+    try {
+        const quote = await new Promise((resolve, reject) => {
+            db.get('SELECT quote_pdf FROM quotes WHERE quote_id = ?', [quoteId], (err, row) => {
+                if (err) reject(err);
+                resolve(row);
+            });
+        });
+
+        if (!quote || !quote.quote_pdf) {
+            return res.status(404).send('PDF not found');
+        }
+
+        const pdfPath = path.join(__dirname, '../public', quote.quote_pdf);
+        res.download(pdfPath, `quote-${quoteId}.pdf`);
+    } catch (err) {
+        console.error('PDF download error:', err);
+        res.status(500).send('Error downloading PDF');
+    }
 });
 
 module.exports = router;

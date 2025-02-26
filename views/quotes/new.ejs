@@ -270,12 +270,10 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Client search functionality
     const clientSearch = document.getElementById('client_search');
     const searchResults = document.getElementById('searchResults');
     let searchTimeout;
 
-    // Replace the existing client search code
     clientSearch.addEventListener('input', function() {
         clearTimeout(searchTimeout);
         const searchTerm = this.value.trim();
@@ -285,44 +283,71 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
 
+        searchResults.innerHTML = `
+            <div class="list-group">
+                <div class="list-group-item text-center">
+                    <div class="spinner-border spinner-border-sm" role="status">
+                        <span class="visually-hidden">Loading...</span>
+                    </div>
+                </div>
+            </div>`;
+        searchResults.classList.remove('d-none');
+
         searchTimeout = setTimeout(() => {
-            fetch(`/clients/search?term=${encodeURIComponent(searchTerm)}`)
-                .then(res => res.json())
-                .then(clients => {
-                    if (clients.length === 0) {
-                        searchResults.innerHTML = `
+            fetch(`/clients/search?term=${encodeURIComponent(searchTerm)}`, {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(clients => {
+                if (clients.length === 0) {
+                    searchResults.innerHTML = `
+                        <div class="list-group">
                             <div class="list-group-item text-muted">
                                 No clients found
-                            </div>`;
-                    } else {
-                        searchResults.innerHTML = clients.map(client => `
-                            <div class="list-group-item list-group-item-action" 
-                                 onclick="selectClient(${JSON.stringify(client).replace(/"/g, '&quot;')})">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <strong>${client.client_lastname} ${client.client_surname || ''}</strong>
-                                        <div class="small text-muted">${client.client_address || ''}</div>
-                                    </div>
-                                    <div class="text-muted">${client.client_mobile || ''}</div>
-                                </div>
                             </div>
-                        `).join('');
-                    }
-                    searchResults.classList.remove('d-none');
-                })
-                .catch(error => {
-                    console.error('Search error:', error);
-                    searchResults.innerHTML = `
-                        <div class="list-group-item text-danger">
-                            Error searching clients
                         </div>`;
-                });
+                } else {
+                    searchResults.innerHTML = `
+                        <div class="list-group">
+                            ${clients.map(client => `
+                                <button type="button" 
+                                        class="list-group-item list-group-item-action"
+                                        onclick='selectClient(${JSON.stringify(client)})'>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <div>
+                                            <strong>${client.client_lastname} ${client.client_surname || ''}</strong>
+                                            ${client.client_mobile ? `<br><small>${client.client_mobile}</small>` : ''}
+                                        </div>
+                                        ${client.client_address ? 
+                                            `<small class="text-muted">${client.client_address}</small>` : ''}
+                                    </div>
+                                </button>
+                            `).join('')}
+                        </div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                searchResults.innerHTML = `
+                    <div class="list-group">
+                        <div class="list-group-item text-danger">
+                            Error searching clients. Please try again.
+                        </div>
+                    </div>`;
+            });
         }, 300);
     });
 
-    // Add click outside handler to close search results
+    // Close search results when clicking outside
     document.addEventListener('click', function(e) {
-        if (!e.target.closest('.search-container')) {
+        if (!searchResults.contains(e.target) && e.target !== clientSearch) {
             searchResults.classList.add('d-none');
         }
     });

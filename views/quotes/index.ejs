@@ -83,10 +83,17 @@
                                            class="btn btn-sm btn-warning">
                                             <i class="bi bi-pencil"></i>
                                         </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-secondary"
+                                                onclick="generatePDF('<%= quote.quote_id %>')"
+                                                title="Generate PDF">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
                                         <% if (quote.quote_pdf) { %>
-                                            <a href="/quotes/<%= quote.quote_id %>/pdf" 
-                                               class="btn btn-sm btn-secondary">
-                                                <i class="bi bi-file-pdf"></i>
+                                            <a href="/quotes/<%= quote.quote_id %>/download-pdf" 
+                                               class="btn btn-sm btn-success"
+                                               title="Download PDF">
+                                                <i class="bi bi-download"></i>
                                             </a>
                                         <% } %>
                                     </div>
@@ -124,3 +131,62 @@
         <% } %>
     </div>
 </div>
+
+<!-- Add this before closing body tag -->
+<script>
+async function generatePDF(quoteId) {
+    console.log('Generating PDF for quoteId:', quoteId);
+    try {
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+
+        const response = await fetch(`/quotes/${quoteId}/generate-pdf`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('PDF generation failed');
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // Show success message
+            const alert = document.createElement('div');
+            alert.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+            alert.setAttribute('style', 'z-index: 1050');
+            alert.innerHTML = `
+                PDF generated successfully
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(alert);
+
+            // Reload the page after 1 second to show the download button
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        }
+    } catch (error) {
+        console.error('PDF generation error:', error);
+        // Show error message
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+        alert.setAttribute('style', 'z-index: 1050');
+        alert.innerHTML = `
+            Error generating PDF
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(alert);
+    } finally {
+        // Reset button state
+        const button = event.target.closest('button');
+        button.disabled = false;
+        button.innerHTML = '<i class="bi bi-file-pdf"></i>';
+    }
+}
+</script>

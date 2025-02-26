@@ -79,6 +79,51 @@ const validateCsvClient = (client) => {
     return errors;
 };
 
+// Move this route to the top, before other routes
+router.get('/search', async (req, res) => {
+    const searchTerm = req.query.term;
+    console.log('Search term received:', searchTerm);
+
+    if (!searchTerm || searchTerm.length < 2) {
+        return res.json([]);
+    }
+
+    try {
+        const clients = await new Promise((resolve, reject) => {
+            db.all(`
+                SELECT 
+                    client_id,
+                    client_lastname,
+                    client_surname,
+                    client_mobile,
+                    client_address,
+                    client_email
+                FROM clients
+                WHERE (
+                    client_lastname LIKE ? OR 
+                    client_surname LIKE ? OR 
+                    client_mobile LIKE ?
+                )
+                AND status = 'Valid'
+                LIMIT 10
+            `, [
+                `%${searchTerm}%`,
+                `%${searchTerm}%`,
+                `%${searchTerm}%`
+            ], (err, rows) => {
+                if (err) reject(err);
+                resolve(rows || []);
+            });
+        });
+
+        console.log('Search results:', clients.length, 'clients found');
+        return res.json(clients);
+    } catch (err) {
+        console.error('Search error:', err);
+        return res.status(500).json({ error: 'Error searching clients' });
+    }
+});
+
 // Get all clients with search
 router.get('/', async (req, res) => {
     const { name, mobile, address, status } = req.query;

@@ -6,6 +6,25 @@ const db = new sqlite3.Database('./database.db');
 
 //create table
 db.serialize(() => {
+
+  db.run(`CREATE TABLE IF NOT EXISTS companies (
+    company_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    company_name TEXT NOT NULL,
+    company_address TEXT,
+    company_postcode TEXT,
+    company_phone TEXT,
+    company_email TEXT,
+    company_website TEXT,
+    company_registration TEXT,
+    company_gst TEXT,
+    bank_name TEXT,
+    bank_account TEXT,
+    quote_notes TEXT,
+    invoice_notes TEXT,
+    create_date TEXT DEFAULT CURRENT_TIMESTAMP,
+    update_date TEXT
+)`);
+
     db.run(`CREATE TABLE IF NOT EXISTS users (
         user_id INTEGER PRIMARY KEY AUTOINCREMENT, 
         user_code TEXT UNIQUE NOT Null,
@@ -14,7 +33,9 @@ db.serialize(() => {
         create_date default CURRENT_TIMESTAMP,
         update_date TEXT,
         status default 'Valid',
-        user_password TEXT
+        user_password TEXT,
+        company_id INTEGER,
+        FOREIGN KEY(company_id) REFERENCES companies(company_id)
     )`);
 
     db.run(`CREATE TABLE IF NOT EXISTS clients (
@@ -136,14 +157,51 @@ db.run(`CREATE TABLE IF NOT EXISTS order_details (
 )`);
 
 // Insert test data
- // Insert test data only if the tables are empty
+// Insert test data only if the tables are empty
+db.get("SELECT COUNT(*) AS count FROM companies", (err, row) => {
+  if (err) throw err;
+  if (row.count === 0) {
+    db.run(`
+      INSERT INTO companies (
+        company_name ,
+        company_address ,
+        company_postcode ,
+        company_phone ,
+        company_email ,
+        company_website ,
+        company_registration ,
+        company_gst ,
+        bank_name ,
+        bank_account ,
+        quote_notes ,
+        invoice_notes ,
+        create_date
+      ) VALUES (
+        'Nova Gate Limited',
+        'Ormiston, Flat Bush, Auckland 2019',
+        '2019',
+        '021-123-4567',
+        'contact@smartjob.com',
+        'www.smartjob.com',
+        '123456',
+        '123456',
+        'ASB',
+        '123456789',
+        'Please pay within 7 days',
+        'Please pay within 14 days',
+        CURRENT_TIMESTAMP
+      )
+    `);
+  }
+}); 
+// Insert test data only if the tables are empty
  db.get("SELECT COUNT(*) AS count FROM users", (err, row) => {
     if (err) throw err;
     if (row.count === 0) {
       db.run(`
-        INSERT INTO users (user_code, user_name, user_role,user_password) VALUES
-        ('U001', 'NovaGate','admin', '123'),
-        ('U002', 'Kelly', 'admin','123')
+        INSERT INTO users (user_code, user_name, user_role,user_password,company_id) VALUES
+        ('U001', 'NovaGate','admin', '123',1),
+        ('U002', 'Kelly', 'admin','123',1)
       `);
     }
   });

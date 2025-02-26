@@ -1,0 +1,126 @@
+<div class="card">
+    <div class="card-header">
+        <h4 class="card-title mb-0">Company Profile</h4>
+    </div>
+    <div class="card-body">
+        <form action="/profiles/update" method="POST">
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label">Company Name*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="company_name" 
+                           value="<%= profile.company_name || '' %>"
+                           required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Registration Number</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="company_registration"
+                           value="<%= profile.company_registration || '' %>">
+                </div>
+
+                <div class="col-md-8">
+                    <label class="form-label">Address*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="company_address"
+                           value="<%= profile.company_address || '' %>"
+                           required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Postcode*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="company_postcode"
+                           value="<%= profile.company_postcode || '' %>"
+                           required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Phone*</label>
+                    <input type="tel" 
+                           class="form-control" 
+                           name="company_phone"
+                           value="<%= profile.company_phone || '' %>"
+                           required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Email*</label>
+                    <input type="email" 
+                           class="form-control" 
+                           name="company_email"
+                           value="<%= profile.company_email || '' %>"
+                           required>
+                </div>
+
+                <div class="col-md-4">
+                    <label class="form-label">Website</label>
+                    <input type="url" 
+                           class="form-control" 
+                           name="company_website"
+                           value="<%= profile.company_website || '' %>">
+                </div>
+
+                <!-- Banking Information -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Banking Information</h5>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Bank Name*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="bank_name"
+                           value="<%= profile.bank_name || '' %>"
+                           required>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">Account Number*</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="bank_account"
+                           value="<%= profile.bank_account || '' %>"
+                           required>
+                </div>
+
+                <!-- Quote Settings -->
+                <div class="col-12 mt-4">
+                    <h5 class="border-bottom pb-2">Quote Settings</h5>
+                </div>
+
+                <div class="col-md-6">
+                    <label class="form-label">GST Number</label>
+                    <input type="text" 
+                           class="form-control" 
+                           name="company_gst"
+                           value="<%= profile.company_gst || '' %>">
+                </div>
+
+                <div class="col-12">
+                    <label class="form-label">Default Quote Notes</label>
+                    <textarea class="form-control" 
+                            name="quote_notes" 
+                            rows="4"><%= profile.quote_notes || '' %></textarea>
+                </div>
+                <div class="col-12">
+                    <label class="form-label">Default Invoice Notes</label>
+                    <textarea class="form-control" 
+                            name="invoice_notes" 
+                            rows="4"><%= profile.invoice_notes || '' %></textarea>
+                </div>
+
+                <div class="col-12 text-end mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        Save Changes
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
