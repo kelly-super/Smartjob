@@ -77,6 +77,20 @@ html, body {
   border-bottom: 1px solid rgba(0, 0, 0, 0.125);
 }
 
+.card-header .form-control:focus,
+.card-header .input-group-text {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.card-header .input-group-text {
+    background-color: #fff;
+}
+
+.card-header .input-group .form-control:focus {
+    z-index: 3;
+}
+
 .table thead th {
   background-color: rgba(0, 0, 0, 0.03);
   border-bottom: none;

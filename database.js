@@ -17,6 +17,7 @@ db.serialize(() => {
     company_website TEXT,
     company_registration TEXT,
     company_gst TEXT,
+    company_logo TEXT,
     bank_name TEXT,
     bank_account TEXT,
     quote_notes TEXT,
@@ -48,6 +49,8 @@ db.serialize(() => {
         client_mobile TEXT,
         client_email TEXT,
         create_date default CURRENT_TIMESTAMP,
+        billing_address TEXT,
+        shipping_address TEXT,
         update_date TEXT,
         status default 'Valid',
         remark TEXT,
@@ -154,6 +157,41 @@ db.run(`CREATE TABLE IF NOT EXISTS order_details (
   remark TEXT,
   create_date TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (order_id) REFERENCES orders(order_id)
+)`);
+
+db.run(`CREATE TABLE IF NOT EXISTS invoices (
+    invoice_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    invoice_number TEXT UNIQUE NOT NULL,
+    quote_id INTEGER,
+    client_id INTEGER,
+    company_id INTEGER,
+    issue_date DATE NOT NULL,
+    due_date DATE NOT NULL,
+    total_amount REAL NOT NULL,
+    tax_amount REAL,
+    discount_amount REAL,
+    status TEXT DEFAULT 'Unpaid',  -- e.g., Paid, Unpaid, Partially Paid
+    notes TEXT,
+    invoice_pdf TEXT,
+    update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (quote_id) REFERENCES quotes(quote_id),
+    FOREIGN KEY (client_id) REFERENCES clients(client_id)
+    
+)`);
+
+db.run(`CREATE TABLE IF NOT EXISTS invoice_items (
+  invoice_item_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  invoice_id INTEGER NOT NULL,
+  item_name TEXT,
+  item_description TEXT,
+  item_price REAL,
+  item_discount_price REAL,
+  item_total_price REAL,
+  item_quantity INTEGER,
+  item_remark TEXT,
+  create_date TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_id)
 )`);
 
 // Insert test data

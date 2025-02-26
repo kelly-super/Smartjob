@@ -751,4 +751,43 @@ router.get('/:id/download-pdf', async (req, res) => {
     }
 });
 
+// Add this new route to get quote details
+router.get('/:id/details', async (req, res) => {
+    try {
+        const quoteId = req.params.id;
+        
+        const [quote, items] = await Promise.all([
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT * FROM quotes 
+                    WHERE quote_id = ?
+                `, [quoteId], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
+            }),
+            new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT * FROM quote_items 
+                    WHERE quote_id = ?
+                    ORDER BY quote_item_id
+                `, [quoteId], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows);
+                });
+            })
+        ]);
+
+        if (!quote) {
+            return res.status(404).json({ error: 'Quote not found' });
+        }
+
+        res.json({ quote, items });
+        
+    } catch (err) {
+        console.error('Error fetching quote details:', err);
+        res.status(500).json({ error: 'Error fetching quote details' });
+    }
+});
+
 module.exports = router;

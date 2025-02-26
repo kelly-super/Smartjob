@@ -1,0 +1,154 @@
+<div class="card">
+    <div class="card-header">
+        <div class="row align-items-center mb-3">
+            <div class="col-md-6">
+                <h4 class="card-title mb-0">Invoices</h4>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="/invoices/new" class="btn btn-primary">
+                    <i class="bi bi-plus-lg"></i> New Invoice
+                </a>
+            </div>
+        </div>
+        
+        <!-- Search Form -->
+        <form action="/invoices" method="GET" class="row g-3">
+            <div class="col-md-3">
+                <div class="input-group">
+
+                    <input type="text" 
+                           class="form-control" 
+                           name="client_name" 
+                           placeholder="Search by client name"
+                           value="<%= query?.client_name || '' %>">
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <div class="input-group">
+
+                    <input type="text" 
+                           class="form-control" 
+                           name="invoice_number" 
+                           placeholder="Invoice number"
+                           value="<%= query?.invoice_number || '' %>">
+                </div>
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" 
+                       class="form-control" 
+                       name="date_from"
+                       placeholder="Date from"
+                       value="<%= query?.date_from || '' %>">
+            </div>
+
+            <div class="col-md-2">
+                <input type="date" 
+                       class="form-control" 
+                       name="date_to"
+                       placeholder="Date to"
+                       value="<%= query?.date_to || '' %>">
+            </div>
+
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </form>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Invoice #</th>
+                        <th>Client</th>
+                        <th>Issue Date</th>
+                        <th>Due Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% if (invoices && invoices.length > 0) { %>
+                        <% invoices.forEach(invoice => { %>
+                            <tr>
+                                <td><%= invoice.invoice_number %></td>
+                                <td><%= invoice.client_lastname %> <%= invoice.client_surname %></td>
+                                <td><%= new Date(invoice.issue_date).toLocaleDateString() %></td>
+                                <td><%= new Date(invoice.due_date).toLocaleDateString() %></td>
+                                <td>$<%= invoice.total_amount.toFixed(2) %></td>
+                                <td>
+                                    <span class="badge bg-<%= invoice.status === 'Paid' ? 'success' : 
+                                        invoice.status === 'Partially Paid' ? 'warning' : 'danger' %>">
+                                        <%= invoice.status %>
+                                    </span>
+                                </td>
+                                <td>
+                                    <div class="btn-group">
+                                        <a href="/invoices/<%= invoice.invoice_id %>" 
+                                           class="btn btn-sm btn-info">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="/invoices/<%= invoice.invoice_id %>/edit" 
+                                           class="btn btn-sm btn-warning">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <button type="button"
+                                                class="btn btn-sm btn-secondary"
+                                                onclick="generatePDF('<%= invoice.invoice_id %>')"
+                                                title="Generate PDF">
+                                            <i class="bi bi-file-pdf"></i>
+                                        </button>
+                                        <% if (invoice.invoice_pdf) { %>
+                                            <a href="/invoices/<%= invoice.invoice_id %>/download-pdf" 
+                                               class="btn btn-sm btn-success"
+                                               title="Download PDF">
+                                                <i class="bi bi-download"></i>
+                                            </a>
+                                        <% } %>
+                                    </div>
+                                </td>
+                            </tr>
+                        <% }); %>
+                    <% } else { %>
+                        <tr>
+                            <td colspan="7" class="text-center">No invoices found</td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<script>
+async function generatePDF(invoiceId) {
+    try {
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        const response = await fetch(`/invoices/${invoiceId}/generate-pdf`, {
+            method: 'POST'
+        });
+
+        if (!response.ok) throw new Error('PDF generation failed');
+
+        const result = await response.json();
+        if (result.success) {
+            location.reload();
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Error generating PDF');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = originalContent;
+    }
+}
+</script>
