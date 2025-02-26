@@ -3,3 +3,5 @@ database.db
 uploads/
 public/quotepdfs/
 public/invoicepdfs/
+public/uploads/
+public/image/

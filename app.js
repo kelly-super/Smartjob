@@ -61,7 +61,7 @@ app.use('/login', loginRoutes);
 app.use('/profiles', profileRoutes);
 app.use('/invoices', invoiceRoutes);
 app.use('/public', express.static(__dirname + '/public'));
-
+app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Default route to login if not authenticated
 app.get('/', (req, res) => {
   console.log('User login in');

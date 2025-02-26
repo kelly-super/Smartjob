@@ -294,89 +294,148 @@ router.post('/:id/generate-pdf', async (req, res) => {
         ]);
 
         // Create PDF document
-        const doc = new PDFDocument({ size: 'A4', margin: 50 });
+        const doc = new PDFDocument({ 
+            size: 'A4', 
+            margin: 50,
+            info: {
+                Title: `Invoice ${invoice.invoice_number}`,
+                Author: company.company_name,
+            }
+        });
+
+        // Set up PDF directory and stream
         const pdfDir = path.join(__dirname, '../public/invoicepdfs');
-                if (!fs.existsSync(pdfDir)) {
-                    fs.mkdirSync(pdfDir, { recursive: true });
-                }
-                const pdfPath = path.join(pdfDir, `invoice-${invoiceId}.pdf`);
-                const writeStream = fs.createWriteStream(pdfPath);
-                doc.pipe(writeStream);
+        if (!fs.existsSync(pdfDir)) {
+            fs.mkdirSync(pdfDir, { recursive: true });
+        }
+        const pdfPath = path.join(pdfDir, `invoice-${invoiceId}.pdf`);
+        const writeStream = fs.createWriteStream(pdfPath);
+        doc.pipe(writeStream);
 
-        // Add company logo
-        doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 150 });
+        // Header section
+        try {
+            // Try to add logo if exists
+            doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 150 });
+        } catch (error) {
+            // Fallback to company name if no logo
+            doc.fontSize(24)
+               .font('Helvetica-Bold')
+               .text(company.company_name, 50, 50);
+        }
 
-        // Add company information
+        // Company information (top right)
         doc.fontSize(10)
-           .text(company.company_name, 400, 50, { align: 'right' })
-           .text(company.company_address, 400, 65, { align: 'right' })
-           .text(`Phone: ${company.company_phone}`, 400, 80, { align: 'right' })
-           .text(`Email: ${company.company_email}`, 400, 95, { align: 'right' })
-           .text(`GST: ${company.company_gst}`, 400, 110, { align: 'right' });
+           .font('Helvetica')
+           .text(company.company_address || '', 400, 50, { align: 'right' })
+           .text(company.company_postcode || '', 400, 65, { align: 'right' })
+           .text(`Phone: ${company.company_phone || ''}`, 400, 80, { align: 'right' })
+           .text(`Email: ${company.company_email || ''}`, 400, 95, { align: 'right' })
+           .text(`GST: ${company.company_gst || ''}`, 400, 110, { align: 'right' });
 
-        // Add invoice title and details
-        doc.fontSize(20)
-           .text('INVOICE', 50, 150)
+        // Add horizontal line
+        doc.moveTo(50, 140).lineTo(550, 140).stroke();
+
+        // Invoice title
+        doc.fontSize(24)
+           .font('Helvetica-Bold')
+           .text('INVOICE', 50, 170, { align: 'center' });
+
+        // Bill To section (left)
+        doc.fontSize(12)
+           .font('Helvetica-Bold')
+           .text('Bill To:', 50, 220)
+           .font('Helvetica')
            .fontSize(10)
-           .text(`Invoice #: ${invoice.invoice_number}`, 50, 180)
-           .text(`Date: ${new Date(invoice.issue_date).toLocaleDateString()}`, 50, 195)
-           .text(`Due Date: ${new Date(invoice.due_date).toLocaleDateString()}`, 50, 210);
+           .text(`${client.client_lastname} ${client.client_surname}`, 50, 240)
+           .text(client.client_address || '', 50, 255)
+           .text(`Phone: ${client.client_mobile || ''}`, 50, 270)
+           .text(`Email: ${client.client_email || ''}`, 50, 285);
 
-        // Add client details
+        // Invoice details (right)
         doc.fontSize(10)
-           .text('Bill To:', 50, 240)
-           .text(`${client.client_lastname} ${client.client_surname}`, 50, 255)
-           .text(client.client_address || '', 50, 270)
-           .text(`Phone: ${client.client_mobile || ''}`, 50, 285)
-           .text(`Email: ${client.client_email || ''}`, 50, 300);
+           .font('Helvetica')
+           .text('Invoice Number:', 350, 240)
+           .text('Issue Date:', 350, 255)
+           .text('Due Date:', 350, 270)
+           .font('Helvetica-Bold')
+           .text(invoice.invoice_number, 450, 240)
+           .text(new Date(invoice.issue_date).toLocaleDateString(), 450, 255)
+           .text(new Date(invoice.due_date).toLocaleDateString(), 450, 270);
 
         // Add items table
-        let y = 350;
-        doc.fontSize(10)
-           .text('Item', 50, y)
-           .text('Description', 150, y)
-           .text('Quantity', 300, y, { width: 50, align: 'right' })
-           .text('Price', 370, y, { width: 60, align: 'right' })
-           .text('Discount', 450, y, { width: 60, align: 'right' })
-           .text('Total', 520, y, { width: 60, align: 'right' });
+        let y = 340;
 
-        doc.moveTo(50, y + 15).lineTo(570, y + 15).stroke();
-        y += 30;
+        // Table headers with background
+        doc.rect(50, y, 500, 20).fill('#f6f6f6');
+        doc.font('Helvetica-Bold')
+           .fillColor('#000000')
+           .text('Item', 60, y + 5)
+           .text('Description', 160, y + 5)
+           .text('Quantity', 300, y + 5, { width: 50, align: 'right' })
+           .text('Price', 370, y + 5, { width: 60, align: 'right' })
+           .text('Discount', 440, y + 5, { width: 60, align: 'right' })
+           .text('Total', 510, y + 5, { width: 60, align: 'right' });
 
-        // Add items
+        y += 25;
+
+        // Table rows
+        doc.font('Helvetica');
         items.forEach(item => {
-            doc.text(item.item_name, 50, y)
-               .text(item.item_description || '', 150, y)
+            // Check if we need a new page
+            if (y > 700) {
+                doc.addPage();
+                y = 50;
+            }
+
+            doc.text(item.item_name, 60, y)
+               .text(item.item_description || '', 160, y, { width: 130 })
                .text(item.item_quantity.toString(), 300, y, { width: 50, align: 'right' })
                .text(`$${item.item_price.toFixed(2)}`, 370, y, { width: 60, align: 'right' })
-               .text(`$${(item.item_discount_price || 0).toFixed(2)}`, 450, y, { width: 60, align: 'right' })
-               .text(`$${item.item_total_price.toFixed(2)}`, 520, y, { width: 60, align: 'right' });
+               .text(`$${(item.item_discount_price || 0).toFixed(2)}`, 440, y, { width: 60, align: 'right' })
+               .text(`$${item.item_total_price.toFixed(2)}`, 510, y, { width: 60, align: 'right' });
             y += 20;
         });
 
-        // Add totals
+        // Add totals section
         y += 20;
-        doc.moveTo(350, y).lineTo(570, y).stroke();
+        doc.moveTo(350, y).lineTo(550, y).stroke();
         y += 10;
 
-        doc.text('Subtotal:', 350, y)
-           .text(`$${(invoice.total_amount - invoice.tax_amount).toFixed(2)}`, 520, y, { width: 60, align: 'right' });
+        // Totals
+        doc.font('Helvetica')
+           .text('Subtotal:', 350, y, { width: 140, align: 'right' })
+           .text(`$${(invoice.total_amount - invoice.tax_amount).toFixed(2)}`, 510, y, { width: 60, align: 'right' });
         y += 20;
-        
-        doc.text('GST (15%):', 350, y)
-           .text(`$${invoice.tax_amount.toFixed(2)}`, 520, y, { width: 60, align: 'right' });
+
+        doc.text('GST (15%):', 350, y, { width: 140, align: 'right' })
+           .text(`$${invoice.tax_amount.toFixed(2)}`, 510, y, { width: 60, align: 'right' });
         y += 20;
-        
-        doc.fontSize(12)
-           .text('Total:', 350, y)
-           .text(`$${invoice.total_amount.toFixed(2)}`, 520, y, { width: 60, align: 'right' });
+
+        doc.font('Helvetica-Bold')
+           .text('Total:', 350, y, { width: 140, align: 'right' })
+           .text(`$${invoice.total_amount.toFixed(2)}`, 510, y, { width: 60, align: 'right' });
 
         // Add payment details
         y += 50;
-        doc.fontSize(10)
-           .text('Payment Details:', 50, y)
-           .text(`Bank: ${company.bank_name}`, 50, y + 15)
-           .text(`Account: ${company.bank_account}`, 50, y + 30);
+        doc.font('Helvetica-Bold')
+           .text('Payment Details', 50, y);
+        y += 15;
+        doc.font('Helvetica')
+           .text(`Bank: ${company.bank_name || ''}`, 50, y)
+           .text(`Account: ${company.bank_account || ''}`, 50, y + 15);
+
+        // Add invoice notes if exists
+        if (company.invoice_notes) {
+            y += 50;
+            doc.font('Helvetica-Bold')
+               .text('Notes', 50, y);
+            y += 15;
+            doc.font('Helvetica')
+               .text(company.invoice_notes, 50, y, {
+                   width: 500,
+                   align: 'left'
+               });
+        }
 
         // Finalize PDF
         doc.end();

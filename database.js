@@ -220,7 +220,7 @@ db.get("SELECT COUNT(*) AS count FROM companies", (err, row) => {
         '2019',
         '021-123-4567',
         'contact@smartjob.com',
-        'www.smartjob.com',
+        'http://www.smartjob.com',
         '123456',
         '123456',
         'ASB',

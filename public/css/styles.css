@@ -164,3 +164,26 @@ html, body {
   height: 1rem;
   border-width: 0.2em;
 }
+
+.company-logo-preview {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 0.25rem;
+    background: #fff;
+    max-width: 150px;
+    height: auto;
+}
+
+.company-logo-upload {
+    position: relative;
+}
+
+.company-logo-upload .form-control {
+    padding-right: 100px;
+}
+
+.company-logo-upload .btn {
+    position: absolute;
+    right: 0;
+    top: 0;
+}
