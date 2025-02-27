@@ -59,6 +59,7 @@
         </form>
     </div>
     <div class="card-body">
+
         <div class="table-responsive">
             <table class="table table-hover">
                 <thead>
@@ -90,11 +91,13 @@
                                 <td>
                                     <div class="btn-group">
                                         <a href="/invoices/<%= invoice.invoice_id %>" 
-                                           class="btn btn-sm btn-info">
+                                           class="btn btn-sm btn-info"
+                                           title="View">
                                             <i class="bi bi-eye"></i>
                                         </a>
                                         <a href="/invoices/<%= invoice.invoice_id %>/edit" 
-                                           class="btn btn-sm btn-warning">
+                                           class="btn btn-sm btn-warning"
+                                           title="Edit">
                                             <i class="bi bi-pencil"></i>
                                         </a>
                                         <button type="button"
@@ -103,6 +106,7 @@
                                                 title="Generate PDF">
                                             <i class="bi bi-file-pdf"></i>
                                         </button>
+                             
                                         <% if (invoice.invoice_pdf) { %>
                                             <a href="/invoices/<%= invoice.invoice_id %>/download-pdf" 
                                                class="btn btn-sm btn-success"
@@ -127,28 +131,69 @@
 
 <script>
 async function generatePDF(invoiceId) {
+    console.log('Generating PDF for invoiceId:', invoiceId); // Fixed the variable name
+    
     try {
+        // Get the button and show loading state
         const button = event.target.closest('button');
         const originalContent = button.innerHTML;
         button.disabled = true;
-        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        button.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
 
+        // Make the API call
         const response = await fetch(`/invoices/${invoiceId}/generate-pdf`, {
-            method: 'POST'
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
         });
 
-        if (!response.ok) throw new Error('PDF generation failed');
+        // Check for HTTP errors
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || 'PDF generation failed');
+        }
 
         const result = await response.json();
+        
         if (result.success) {
-            location.reload();
+            // Show success message
+            showAlert('PDF generated successfully', 'success');
+            
+            // Reload the page after 1.5 seconds
+            setTimeout(() => {
+                window.location.reload();
+            }, 1500);
+        } else {
+            throw new Error(result.error || 'PDF generation failed');
         }
     } catch (error) {
-        console.error('Error:', error);
-        alert('Error generating PDF');
+        console.error('PDF generation error:', error);
+        showAlert(error.message || 'Error generating PDF', 'danger');
     } finally {
-        button.disabled = false;
-        button.innerHTML = originalContent;
+        // Reset button state
+        const button = event.target.closest('button');
+        if (button) {
+            button.disabled = false;
+            button.innerHTML = '<i class="bi bi-file-pdf"></i>';
+        }
     }
+}
+
+// Helper function to show alerts
+function showAlert(message, type = 'success') {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+    alert.setAttribute('style', 'z-index: 1050');
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    `;
+    document.body.appendChild(alert);
+
+    // Auto remove after 3 seconds
+    setTimeout(() => {
+        alert.remove();
+    }, 3000);
 }
 </script>

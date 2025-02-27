@@ -530,8 +530,8 @@ console.log("profile.company_email=========",profile.company_email);
         doc.pipe(writeStream);
 
         // Add company logo and header
-        doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 80 });
-
+      //  doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 80 });
+      doc.image(profile.company_logo, 50, 50, { width: 80 });
         // Add company information (right-aligned)
         doc.fontSize(10)
            .text(profile.company_name, 400, 50, { align: 'right' })

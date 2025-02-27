@@ -23,8 +23,9 @@ app.use(session({
 app.use(flash());
 
 // View engine setup
-app.set('view engine', 'ejs');
+
 app.set('views', path.join(__dirname, 'views'));
+app.set('view engine', 'ejs');
 app.use('/public', express.static(path.join(__dirname, 'public')));
 
 // Flash messages middleware
@@ -60,7 +61,7 @@ app.use('/', loginRoutes);
 app.use('/login', loginRoutes);
 app.use('/profiles', profileRoutes);
 app.use('/invoices', invoiceRoutes);
-app.use('/public', express.static(__dirname + '/public'));
+app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Default route to login if not authenticated
 app.get('/', (req, res) => {

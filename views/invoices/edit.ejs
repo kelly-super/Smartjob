@@ -3,10 +3,10 @@
         <h4 class="card-title">Edit Invoice #<%= invoice.invoice_number %></h4>
     </div>
     <div class="card-body">
-        <form id="edit-invoice-form" action="/invoices/<%= invoice.invoice_id %>" method="POST">
+        <form id="edit-invoice-form" action="/invoices/<%= invoice.invoice_id %>/update" method="POST">
             <div class="row g-3">
                 <!-- Invoice Details -->
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Invoice Number</label>
                     <input type="text" 
                            class="form-control" 
@@ -14,7 +14,7 @@
                            readonly>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Issue Date*</label>
                     <input type="date" 
                            class="form-control" 
@@ -23,22 +23,13 @@
                            required>
                 </div>
 
-                <div class="col-md-3">
+                <div class="col-md-4">
                     <label class="form-label">Due Date*</label>
                     <input type="date" 
                            class="form-control" 
                            name="due_date"
                            value="<%= invoice.due_date.split('T')[0] %>"
                            required>
-                </div>
-
-                <div class="col-md-3">
-                    <label class="form-label">Status</label>
-                    <select class="form-select" name="status">
-                        <option value="Unpaid" <%= invoice.status === 'Unpaid' ? 'selected' : '' %>>Unpaid</option>
-                        <option value="Partially Paid" <%= invoice.status === 'Partially Paid' ? 'selected' : '' %>>Partially Paid</option>
-                        <option value="Paid" <%= invoice.status === 'Paid' ? 'selected' : '' %>>Paid</option>
-                    </select>
                 </div>
 
                 <!-- Client Selection -->
@@ -72,7 +63,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                <% invoice_items.forEach((item, index) => { %>
+                                <% items.forEach((item, index) => { %>
                                     <tr>
                                         <td>
                                             <input type="text" 
@@ -80,15 +71,12 @@
                                                    name="items[<%= index %>][name]" 
                                                    value="<%= item.item_name %>"
                                                    required>
-                                            <input type="hidden" 
-                                                   name="items[<%= index %>][id]" 
-                                                   value="<%= item.invoice_item_id %>">
                                         </td>
                                         <td>
                                             <input type="text" 
                                                    class="form-control" 
                                                    name="items[<%= index %>][description]"
-                                                   value="<%= item.item_description %>">
+                                                   value="<%= item.item_description || '' %>">
                                         </td>
                                         <td>
                                             <input type="number" 
@@ -180,12 +168,12 @@
                     <label class="form-label">Notes</label>
                     <textarea class="form-control" 
                              name="notes" 
-                             rows="3"><%= invoice.notes %></textarea>
+                             rows="3"><%= invoice.notes || '' %></textarea>
                 </div>
 
                 <!-- Submit -->
                 <div class="col-12 text-end">
-                    <a href="/invoices" class="btn btn-secondary me-2">Cancel</a>
+                    <a href="/invoices/<%= invoice.invoice_id %>" class="btn btn-secondary me-2">Cancel</a>
                     <button type="submit" class="btn btn-primary">Update Invoice</button>
                 </div>
             </div>
@@ -194,5 +182,102 @@
 </div>
 
 <script>
-// ... (same JavaScript functions as new.ejs) ...
+let itemCount = '<%= items.length %>'
+
+function addItem() {
+    const tbody = document.querySelector('#items-table tbody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>
+            <input type="text" 
+                   class="form-control" 
+                   name="items[${itemCount}][name]" 
+                   required>
+        </td>
+        <td>
+            <input type="text" 
+                   class="form-control" 
+                   name="items[${itemCount}][description]">
+        </td>
+        <td>
+            <input type="number" 
+                   class="form-control item-price" 
+                   name="items[${itemCount}][price]" 
+                   step="0.01" 
+                   required 
+                   onchange="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" 
+                   class="form-control item-quantity" 
+                   name="items[${itemCount}][quantity]" 
+                   value="1" 
+                   min="1" 
+                   required 
+                   onchange="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" 
+                   class="form-control item-discount" 
+                   name="items[${itemCount}][discount]" 
+                   step="0.01" 
+                   value="0" 
+                   onchange="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" 
+                   class="form-control item-total" 
+                   name="items[${itemCount}][total]" 
+                   readonly>
+        </td>
+        <td>
+            <button type="button" 
+                    class="btn btn-sm btn-danger"
+                    onclick="removeItem(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(row);
+    itemCount++;
+}
+
+function removeItem(button) {
+    button.closest('tr').remove();
+    updateTotals();
+}
+
+function calculateTotal(input) {
+    const row = input.closest('tr');
+    const price = parseFloat(row.querySelector('.item-price').value) || 0;
+    const quantity = parseInt(row.querySelector('.item-quantity').value) || 1;
+    const discount = parseFloat(row.querySelector('.item-discount').value) || 0;
+    const total = (price * quantity) - discount;
+    row.querySelector('.item-total').value = total.toFixed(2);
+    updateTotals();
+}
+
+function updateTotals() {
+    let subtotal = 0;
+    document.querySelectorAll('.item-total').forEach(input => {
+        subtotal += parseFloat(input.value) || 0;
+    });
+
+    const gst = subtotal * 0.15;
+    const total = subtotal + gst;
+
+    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('gst').textContent = `$${gst.toFixed(2)}`;
+    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    
+    document.getElementById('total_amount').value = total.toFixed(2);
+    document.getElementById('tax_amount').value = gst.toFixed(2);
+}
+
+// Initialize calculations
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.item-price').forEach(input => {
+        calculateTotal(input);
+    });
+});
 </script>

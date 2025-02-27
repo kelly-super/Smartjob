@@ -23,57 +23,51 @@
         </div>
     </div>
     <div class="card-body">
-        <!-- Invoice Details -->
         <div class="row mb-4">
             <div class="col-md-6">
                 <h5 class="border-bottom pb-2">Invoice Details</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <tr>
-                            <th width="150">Issue Date:</th>
-                            <td><%= new Date(invoice.issue_date).toLocaleDateString() %></td>
-                        </tr>
-                        <tr>
-                            <th>Due Date:</th>
-                            <td><%= new Date(invoice.due_date).toLocaleDateString() %></td>
-                        </tr>
-                        <tr>
-                            <th>Status:</th>
-                            <td>
-                                <span class="badge bg-<%= invoice.status === 'Paid' ? 'success' : 
-                                    invoice.status === 'Partially Paid' ? 'warning' : 'danger' %>">
-                                    <%= invoice.status %>
-                                </span>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                <table class="table table-sm">
+                    <tr>
+                        <th width="150">Issue Date:</th>
+                        <td><%= new Date(invoice.issue_date).toLocaleDateString() %></td>
+                    </tr>
+                    <tr>
+                        <th>Due Date:</th>
+                        <td><%= new Date(invoice.due_date).toLocaleDateString() %></td>
+                    </tr>
+                    <tr>
+                        <th>Status:</th>
+                        <td>
+                            <span class="badge bg-<%= invoice.status === 'Paid' ? 'success' : 
+                                invoice.status === 'Partially Paid' ? 'warning' : 'danger' %>">
+                                <%= invoice.status %>
+                            </span>
+                        </td>
+                    </tr>
+                </table>
             </div>
             <div class="col-md-6">
                 <h5 class="border-bottom pb-2">Client Information</h5>
-                <div class="table-responsive">
-                    <table class="table table-sm">
-                        <tr>
-                            <th width="150">Name:</th>
-                            <td><%= client.client_lastname %> <%= client.client_surname %></td>
-                        </tr>
-                        <tr>
-                            <th>Address:</th>
-                            <td><%= client.client_address || '-' %></td>
-                        </tr>
-                        <tr>
-                            <th>Contact:</th>
-                            <td>
-                                <%= client.client_mobile || '-' %><br>
-                                <%= client.client_email || '-' %>
-                            </td>
-                        </tr>
-                    </table>
-                </div>
+                <table class="table table-sm">
+                    <tr>
+                        <th width="150">Name:</th>
+                        <td><%= clientObj.client_lastname %> <%= clientObj.client_surname %></td>
+                    </tr>
+                    <tr>
+                        <th>Address:</th>
+                        <td><%= clientObj.client_address || '-' %></td>
+                    </tr>
+                    <tr>
+                        <th>Contact:</th>
+                        <td>
+                            <%= clientObj.client_mobile || '-' %><br>
+                            <%= clientObj.client_email || '-' %>
+                        </td>
+                    </tr>
+                </table>
             </div>
         </div>
 
-        <!-- Invoice Items -->
         <h5 class="border-bottom pb-2">Invoice Items</h5>
         <div class="table-responsive mb-4">
             <table class="table">
@@ -88,10 +82,10 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <% invoice_items.forEach(item => { %>
+                    <% items.forEach(item => { %>
                         <tr>
                             <td><%= item.item_name %></td>
-                            <td><%= item.item_description %></td>
+                            <td><%= item.item_description || '-' %></td>
                             <td class="text-end">$<%= item.item_price.toFixed(2) %></td>
                             <td class="text-end"><%= item.item_quantity %></td>
                             <td class="text-end">$<%= (item.item_discount_price || 0).toFixed(2) %></td>
@@ -116,12 +110,11 @@
             </table>
         </div>
 
-        <!-- Notes -->
         <% if (invoice.notes) { %>
             <div class="card bg-light">
                 <div class="card-body">
                     <h6 class="card-title">Notes</h6>
-                    <p class="card-text mb-0"><%= invoice.notes %></p>
+                    <p class="card-text"><%= invoice.notes %></p>
                 </div>
             </div>
         <% } %>
@@ -131,7 +124,7 @@
 <script>
 async function generatePDF(invoiceId) {
     try {
-        const button = event.target;
+        const button = event.target.closest('button');
         const originalContent = button.innerHTML;
         button.disabled = true;
         button.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Generating...';

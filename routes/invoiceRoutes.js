@@ -257,15 +257,16 @@ router.post('/:id/generate-pdf', async (req, res) => {
     const invoiceId = req.params.id;
     
     try {
-        const [invoice, items, company, client] = await Promise.all([
-            new Promise((resolve, reject) => {
-                db.get(`
-                    SELECT * FROM invoices WHERE invoice_id = ?
-                `, [invoiceId], (err, row) => {
-                    if (err) reject(err);
-                    resolve(row);
-                });
-            }),
+        // Check if invoice exists
+        const invoice = await new Promise((resolve, reject) => {
+            db.get('SELECT * FROM invoices WHERE invoice_id = ?', [invoiceId], (err, row) => {
+                if (err) reject(err);
+                if (!row) reject(new Error('Invoice not found'));
+                resolve(row);
+            });
+        });
+
+        const [items, company, client] = await Promise.all([
             new Promise((resolve, reject) => {
                 db.all(`
                     SELECT * FROM invoice_items WHERE invoice_id = ?
@@ -315,7 +316,8 @@ router.post('/:id/generate-pdf', async (req, res) => {
         // Header section
         try {
             // Try to add logo if exists
-            doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 150 });
+           // doc.image('./public/image/smartjob-logo.png', 50, 50, { width: 150 });
+           doc.image(company.company_logo, 50, 50, { width: 80 });
         } catch (error) {
             // Fallback to company name if no logo
             doc.fontSize(24)
@@ -333,7 +335,7 @@ router.post('/:id/generate-pdf', async (req, res) => {
            .text(`GST: ${company.company_gst || ''}`, 400, 110, { align: 'right' });
 
         // Add horizontal line
-        doc.moveTo(50, 140).lineTo(550, 140).stroke();
+       // doc.moveTo(50, 140).lineTo(550, 140).stroke();
 
         // Invoice title
         doc.fontSize(24)
@@ -457,7 +459,10 @@ router.post('/:id/generate-pdf', async (req, res) => {
 
     } catch (err) {
         console.error('Error generating PDF:', err);
-        res.status(500).json({ success: false, error: 'Failed to generate PDF' });
+        res.status(500).json({ 
+            success: false, 
+            error: err.message || 'Failed to generate PDF'
+        });
     }
 });
 
@@ -485,8 +490,9 @@ router.get('/:id/download-pdf', async (req, res) => {
 
 // Show single invoice
 router.get('/:id', async (req, res) => {
+   
     try {
-        const [invoice, items, client] = await Promise.all([
+        const [invoice, items, clientObj, company] = await Promise.all([
             new Promise((resolve, reject) => {
                 db.get(`
                     SELECT i.*, c.company_name, c.company_address, c.company_phone,
@@ -520,21 +526,210 @@ router.get('/:id', async (req, res) => {
                     if (err) reject(err);
                     resolve(row);
                 });
+            }),
+            new Promise((resolve, reject) => {
+                db.get('SELECT * FROM companies LIMIT 1', [], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
             })
         ]);
+
+  console.log("I'm a lucky girl");
 
         res.render('partials/layout', {
             title: `Invoice #${invoice.invoice_number}`,
             body: '../invoices/show',
             invoice,
-            items,
-            client
+            items: items || [],
+            clientObj,
+            company
         });
+
 
     } catch (err) {
         console.error('Error fetching invoice:', err);
         req.flash('error_msg', 'Invoice not found');
         res.redirect('/invoices');
+    }
+});
+
+// Add this route before module.exports
+router.get('/:id/edit', async (req, res) => {
+    try {
+        const [invoice, items, clients, quotes, company] = await Promise.all([
+            // Get invoice details
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT * FROM invoices WHERE invoice_id = ?
+                `, [req.params.id], (err, row) => {
+                    if (err) reject(err);
+                    if (!row) reject(new Error('Invoice not found'));
+                    resolve(row);
+                });
+            }),
+            // Get invoice items
+            new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT * FROM invoice_items 
+                    WHERE invoice_id = ?
+                    ORDER BY invoice_item_id
+                `, [req.params.id], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows);
+                });
+            }),
+            // Get all clients
+            new Promise((resolve, reject) => {
+                db.all('SELECT * FROM clients WHERE status = "Valid"', [], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows);
+                });
+            }),
+            // Get all quotes
+            new Promise((resolve, reject) => {
+                db.all('SELECT * FROM quotes', [], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows);
+                });
+            }),
+            // Get company details
+            new Promise((resolve, reject) => {
+                db.get('SELECT * FROM companies LIMIT 1', [], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
+            })
+        ]);
+
+        res.render('partials/layout', {
+            title: `Edit Invoice #${invoice.invoice_number}`,
+            body: '../invoices/edit',
+            invoice,
+            items,
+            clients,
+            quotes,
+            company
+        });
+
+    } catch (err) {
+        console.error('Error loading invoice:', err);
+        req.flash('error_msg', 'Invoice not found');
+        res.redirect('/invoices');
+    }
+});
+
+// Add update route
+router.post('/:id/update', async (req, res) => {
+    const invoiceId = req.params.id;
+    const {
+        client_id,
+        issue_date,
+        due_date,
+        total_amount,
+        tax_amount,
+        discount_amount,
+        notes,
+        items
+    } = req.body;
+
+    try {
+        // Start transaction
+        await new Promise((resolve, reject) => {
+            db.run('BEGIN TRANSACTION', (err) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+
+        // Update invoice
+        await new Promise((resolve, reject) => {
+            db.run(`
+                UPDATE invoices 
+                SET client_id = ?,
+                    issue_date = ?,
+                    due_date = ?,
+                    total_amount = ?,
+                    tax_amount = ?,
+                    discount_amount = ?,
+                    notes = ?,
+                    update_date = CURRENT_TIMESTAMP
+                WHERE invoice_id = ?
+            `, [
+                client_id,
+                issue_date,
+                due_date,
+                total_amount,
+                tax_amount,
+                discount_amount,
+                notes,
+                invoiceId
+            ], (err) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+
+        // Delete existing items
+        await new Promise((resolve, reject) => {
+            db.run('DELETE FROM invoice_items WHERE invoice_id = ?', [invoiceId], (err) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+
+        // Insert updated items
+        const itemsArray = Array.isArray(items) ? items : [items];
+        for (const item of itemsArray) {
+            await new Promise((resolve, reject) => {
+                db.run(`
+                    INSERT INTO invoice_items (
+                        invoice_id,
+                        item_name,
+                        item_description,
+                        item_price,
+                        item_discount_price,
+                        item_total_price,
+                        item_quantity,
+                        item_remark,
+                        create_date
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                `, [
+                    invoiceId,
+                    item.name,
+                    item.description,
+                    item.price,
+                    item.discount,
+                    item.total,
+                    item.quantity,
+                    item.remark
+                ], (err) => {
+                    if (err) reject(err);
+                    resolve();
+                });
+            });
+        }
+
+        // Commit transaction
+        await new Promise((resolve, reject) => {
+            db.run('COMMIT', (err) => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+
+        req.flash('success_msg', 'Invoice updated successfully');
+        res.redirect(`/invoices/${invoiceId}`);
+
+    } catch (err) {
+        // Rollback on error
+        await new Promise((resolve) => {
+            db.run('ROLLBACK', resolve);
+        });
+
+        console.error('Error updating invoice:', err);
+        req.flash('error_msg', 'Error updating invoice');
+        res.redirect(`/invoices/${invoiceId}/edit`);
     }
 });
 
