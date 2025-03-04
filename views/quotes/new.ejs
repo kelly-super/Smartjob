@@ -40,186 +40,137 @@
     
     <div class="card-body">
         <form id="create-quote-form">
-            <!-- Client Search and Selection -->
-            <div class="mb-4">
-                <h5 class="border-bottom pb-2">Client Information</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3 search-container">
-                            <label class="form-label">Search Client</label>
-                            <div class="input-group">
-                                <input type="text" 
-                                       class="form-control" 
-                                       id="client_search" 
-                                       placeholder="Search by name, mobile or property">
-                                <button type="button" 
-                                        class="btn btn-primary" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#addClientModal">
-                                    <i class="bi bi-plus-circle"></i> New Client
-                                </button>
-                            </div>
-                            <!-- Search Results Dropdown -->
-                            <div id="searchResults" class="d-none"></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <!-- Selected Client Info Card -->
-                        <div id="selectedClientCard" class="card d-none">
-                            <div class="card-body">
-                                <h6 class="card-subtitle mb-2 text-muted">Selected Client</h6>
-                                <div id="selectedClientInfo">
-                                    <input type="hidden" id="client_id" name="client_id" required>
-                                    <p class="mb-1"><strong>Name:</strong> <span id="display_name"></span></p>
-                                    <p class="mb-1"><strong>Mobile:</strong> <span id="display_mobile"></span></p>
-                                    <p class="mb-1"><strong>Email:</strong> <span id="display_email"></span></p>
-                                    <p class="mb-1"><strong>Address:</strong> <span id="display_address"></span></p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Quote Details -->
-            <div class="mb-4">
-                <h5 class="border-bottom pb-2">Quote Details</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Property Address</label>
+            <!-- Client Selection Section -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Client Information</h5>
+                    <div class="mb-3 search-container">
+                        <label class="form-label">Search Client</label>
+                        <div class="input-group">
                             <input type="text" 
                                    class="form-control" 
-                                   name="quote_property_address" 
-                                   id="quote_property_address"
-                                   required>
+                                   id="client_search" 
+                                   placeholder="Search by name, mobile or address">
+                            <button type="button" 
+                                    class="btn btn-primary" 
+                                    data-bs-toggle="modal" 
+                                    data-bs-target="#addClientModal">
+                                <i class="bi bi-plus-circle"></i> New Client
+                            </button>
+                        </div>
+                        <div id="searchResults" class="d-none"></div>
+                    </div>
+                    <!-- Selected Client Info -->
+                    <div id="selectedClientCard" class="card d-none">
+                        <div class="card-body">
+                            <input type="hidden" id="client_id" name="client_id" required>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Name:</strong></div>
+                                <div class="col-sm-8" id="display_name"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Mobile:</strong></div>
+                                <div class="col-sm-8" id="display_mobile"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Email:</strong></div>
+                                <div class="col-sm-8" id="display_email"></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Address:</strong></div>
+                                <div class="col-sm-8" id="display_address"></div>
+                            </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="mb-3">
-                            <label class="form-label">Contact Number</label>
-                            <input type="tel" 
-                                   class="form-control" 
-                                   name="contact_number"
-                                   id="contact_number">
-                        </div>
+                </div>
+
+                <!-- Quote Details -->
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Quote Details</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Property Address</label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="quote_property_address" 
+                               id="quote_property_address"
+                               required>
                     </div>
-                    <div class="col-md-3">
-                        <div class="mb-3">
-                            <label class="form-label">Contact Email</label>
-                            <input type="email" 
-                                   class="form-control" 
-                                   name="contact_email"
-                                   id="contact_email">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contact Number</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       name="contact_number"
+                                       id="contact_number">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contact Email</label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       name="contact_email"
+                                       id="contact_email">
+                            </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Service Items -->
+            <!-- Items Table -->
             <div class="mb-4">
                 <h5 class="border-bottom pb-2 d-flex justify-content-between align-items-center">
-                    Service Items
-                    <button type="button" class="btn btn-success btn-sm" id="addServiceItem">
-                        <i class="bi bi-plus-lg"></i> Add Service
+                    Quote Items
+                    <button type="button" class="btn btn-success btn-sm" onclick="addItem()">
+                        <i class="bi bi-plus-lg"></i> Add Item
                     </button>
                 </h5>
-                <div id="serviceItems">
-                    <div class="service-item card mb-3">
-                        <div class="card-body">
-                            <div class="row g-3">
-                                <div class="col-md-3">
-                                    <label class="form-label">Service Name</label>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           name="item_name[]" 
-                                           required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label">Description</label>
-                                    <textarea class="form-control" 
-                                              name="item_description[]" 
-                                              rows="1"></textarea>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Price ($)</label>
-                                    <input type="number" 
-                                           class="form-control calc-total" 
-                                           name="item_price[]" 
-                                           step="0.01" 
-                                           required>
-                                </div>
-                                <div class="col-md-2">
-                                    <label class="form-label">Discount ($)</label>
-                                    <input type="number" 
-                                           class="form-control calc-total" 
-                                           name="item_discount[]" 
-                                           step="0.01" 
-                                           value="0">
-                                </div>
-                                <div class="col-12">
-                                    <label class="form-label">Remark</label>
-                                    <div class="input-group">
-                                        <input type="text" 
-                                               class="form-control" 
-                                               name="item_remark[]">
-                                        <button type="button" 
-                                                class="btn btn-outline-danger remove-item">
-                                            <i class="bi bi-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="items-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th >Price</th>
+                                <th >Quantity</th>
+                                <th >Discount</th>
+                                <th >Total</th>
+                                <th >Action</th>
+                            </tr>
+                        </thead>
+                                             
 
-            <!-- Quote Summary -->
-            <div class="row justify-content-end">
-                <div class="col-md-4">
-                    <div class="card">
+                        <tbody>
+                            <!-- Items will be added here dynamically -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+                <!-- Totals -->
+                <div class="col-md-4 offset-md-8">
+                    <div class="card bg-light">
                         <div class="card-body">
-                            <h5 class="card-title">Quote Summary</h5>
-                            <div class="mb-2">
-                                <label class="form-label">Subtotal</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="subtotal" 
-                                           readonly>
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">GST (15%)</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="gst" 
-                                           readonly>
-                                </div>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">Total Amount</label>
-                                <div class="input-group">
-                                    <span class="input-group-text">$</span>
-                                    <input type="text" 
-                                           class="form-control" 
-                                           id="total" 
-                                           name="quote_price" 
-                                           readonly>
-                                </div>
+                            <div class="row g-2">
+                                <div class="col-6">Subtotal:</div>
+                                <div class="col-6 text-end" id="subtotal">$0.00</div>
+                                
+                                <div class="col-6">GST (15%):</div>
+                                <div class="col-6 text-end" id="gst">$0.00</div>
+                                
+                                <div class="col-6 fw-bold">Total:</div>
+                                <div class="col-6 text-end fw-bold" id="total">$0.00</div>
+                                
+                                <input type="hidden" name="total_amount" id="total_amount">
+                                <input type="hidden" name="tax_amount" id="tax_amount">
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
 
             <!-- Form Actions -->
-            <div class="mt-4 text-end">
-                <a href="/quotes" class="btn btn-secondary">Cancel</a>
+            <div class="text-end mt-4">
+                <a href="/quotes" class="btn btn-secondary me-2">Cancel</a>
                 <button type="submit" class="btn btn-primary">
                     <i class="bi bi-save"></i> Create Quote
                 </button>
@@ -269,252 +220,235 @@
 </div>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const clientSearch = document.getElementById('client_search');
+let itemCount = 0;
+
+// Client search functionality
+document.getElementById('client_search').addEventListener('input', async function(e) {
+    const searchTerm = e.target.value.trim();
     const searchResults = document.getElementById('searchResults');
-    let searchTimeout;
-
-    clientSearch.addEventListener('input', function() {
-        clearTimeout(searchTimeout);
-        const searchTerm = this.value.trim();
-        
-        if (searchTerm.length < 2) {
-            searchResults.classList.add('d-none');
-            return;
-        }
-
-        searchResults.innerHTML = `
-            <div class="list-group">
-                <div class="list-group-item text-center">
-                    <div class="spinner-border spinner-border-sm" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                </div>
-            </div>`;
-        searchResults.classList.remove('d-none');
-
-        searchTimeout = setTimeout(() => {
-            fetch(`/clients/search?term=${encodeURIComponent(searchTerm)}`, {
-                headers: {
-                    'Accept': 'application/json'
-                }
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                return response.json();
-            })
-            .then(clients => {
-                if (clients.length === 0) {
-                    searchResults.innerHTML = `
-                        <div class="list-group">
-                            <div class="list-group-item text-muted">
-                                No clients found
-                            </div>
-                        </div>`;
-                } else {
-                    searchResults.innerHTML = `
-                        <div class="list-group">
-                            ${clients.map(client => `
-                                <button type="button" 
-                                        class="list-group-item list-group-item-action"
-                                        onclick='selectClient(${JSON.stringify(client)})'>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <div>
-                                            <strong>${client.client_lastname} ${client.client_surname || ''}</strong>
-                                            ${client.client_mobile ? `<br><small>${client.client_mobile}</small>` : ''}
-                                        </div>
-                                        ${client.client_address ? 
-                                            `<small class="text-muted">${client.client_address}</small>` : ''}
-                                    </div>
-                                </button>
-                            `).join('')}
-                        </div>`;
-                }
-            })
-            .catch(error => {
-                console.error('Search error:', error);
-                searchResults.innerHTML = `
-                    <div class="list-group">
-                        <div class="list-group-item text-danger">
-                            Error searching clients. Please try again.
-                        </div>
-                    </div>`;
-            });
-        }, 300);
-    });
-
-    // Close search results when clicking outside
-    document.addEventListener('click', function(e) {
-        if (!searchResults.contains(e.target) && e.target !== clientSearch) {
-            searchResults.classList.add('d-none');
-        }
-    });
-
-    // Handle client selection
-    window.selectClient = function(client) {
-        // Update hidden inputs and display
-        document.getElementById('client_id').value = client.client_id;
-        document.getElementById('display_name').textContent = 
-            `${client.client_lastname} ${client.client_surname}`;
-        document.getElementById('display_mobile').textContent = client.client_mobile || 'N/A';
-        document.getElementById('display_email').textContent = client.client_email || 'N/A';
-        document.getElementById('display_address').textContent = client.client_address || 'N/A';
-        
-        // Auto-fill quote details
-        document.getElementById('quote_property_address').value = client.client_address || '';
-        document.getElementById('contact_number').value = client.client_mobile || '';
-        document.getElementById('contact_email').value = client.client_email || '';
-        
-        document.getElementById('selectedClientCard').classList.remove('d-none');
+    
+    if (searchTerm.length < 2) {
         searchResults.classList.add('d-none');
-        clientSearch.value = `${client.client_lastname} ${client.client_surname}`;
-    };
-
-    // Add new client
-    document.getElementById('saveClientBtn').addEventListener('click', function() {
-        const formData = new FormData(document.getElementById('addClientForm'));
-        const clientData = Object.fromEntries(formData);
-        
-        fetch('/clients/create', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(clientData)
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.client) {
-                selectClient(data.client); // This will auto-fill the quote details
-                bootstrap.Modal.getInstance(document.getElementById('addClientModal')).hide();
-                document.getElementById('addClientForm').reset();
-            } else {
-                throw new Error(data.message || 'Error creating client');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message);
-        });
-    });
-
-    // Service items management
-    const serviceItems = document.getElementById('serviceItems');
-    const serviceItemTemplate = serviceItems.children[0].cloneNode(true);
-
-    document.getElementById('addServiceItem').addEventListener('click', function() {
-        const newItem = serviceItemTemplate.cloneNode(true);
-        newItem.querySelectorAll('input, textarea').forEach(input => input.value = '');
-        serviceItems.appendChild(newItem);
-    });
-
-    serviceItems.addEventListener('click', function(e) {
-        if (e.target.classList.contains('remove-item') || 
-            e.target.closest('.remove-item')) {
-            if (serviceItems.children.length > 1) {
-                e.target.closest('.service-item').remove();
-                calculateTotals();
-            }
-        }
-    });
-
-    // Calculate totals
-    function calculateTotals() {
-        let subtotal = 0;
-        const items = document.querySelectorAll('.service-item');
-        
-        items.forEach(item => {
-            const price = parseFloat(item.querySelector('[name="item_price[]"]').value) || 0;
-            const discount = parseFloat(item.querySelector('[name="item_discount[]"]').value) || 0;
-            subtotal += price - discount;
-        });
-
-        const gst = subtotal * 0.15;
-        const total = subtotal + gst;
-
-        document.getElementById('subtotal').value = subtotal.toFixed(2);
-        document.getElementById('gst').value = gst.toFixed(2);
-        document.getElementById('total').value = total.toFixed(2);
+        return;
     }
 
-    serviceItems.addEventListener('input', function(e) {
-        if (e.target.classList.contains('calc-total')) {
-            calculateTotals();
-        }
-    });
-
-    // Preview PDF
-    document.getElementById('previewPDF').addEventListener('click', function() {
-        const formData = new FormData(document.getElementById('create-quote-form'));
-        fetch('/generate-pdf', {
-            method: 'POST',
-            body: formData
-        })
-        .then(res => res.blob())
-        .then(blob => {
-            const url = window.URL.createObjectURL(blob);
-            window.open(url, '_blank');
-        });
-    });
-
-    // Form submission
-    document.getElementById('create-quote-form').addEventListener('submit', function(e) {
-        e.preventDefault();
+    try {
+        const response = await fetch(`/clients/search?term=${encodeURIComponent(searchTerm)}`);
+        const clients = await response.json();
         
-        // Validate required fields
-        if (!document.getElementById('client_id').value) {
-            alert('Please select a client');
-            return;
+        if (clients.length > 0) {
+            searchResults.innerHTML = clients.map(client => `
+                <div class="list-group-item" onclick="selectClient(${JSON.stringify(client).replace(/"/g, '&quot;')})">
+                    ${client.client_lastname} ${client.client_surname}
+                    <br>
+                    <small class="text-muted">${client.client_mobile || ''}</small>
+                </div>
+            `).join('');
+            searchResults.classList.remove('d-none');
+        } else {
+            searchResults.innerHTML = '<div class="list-group-item">No clients found</div>';
+            searchResults.classList.remove('d-none');
         }
-        const clientName = document.getElementById('display_name').textContent;
-        // Gather form data
-        const formData = new FormData(this);
-        const quoteData = {
-            client_id: formData.get('client_id'),
-            client_name: clientName,
-            quote_property_address: formData.get('quote_property_address'),
-            contact_number: formData.get('contact_number'),
-            contact_email: formData.get('contact_email'),
-            quote_price: document.getElementById('total').value,
-            items: Array.from(document.querySelectorAll('.service-item')).map(item => ({
-                item_name: item.querySelector('[name="item_name[]"]').value,
-                item_description: item.querySelector('[name="item_description[]"]').value,
-                item_price: item.querySelector('[name="item_price[]"]').value,
-                item_discount: item.querySelector('[name="item_discount[]"]').value,
-                item_remark: item.querySelector('[name="item_remark[]"]').value,
-            }))
-        };
+    } catch (error) {
+        console.error('Error searching clients:', error);
+    }
+});
 
-        // Send request
-        fetch('/quotes/create', {
+// Replace the existing selectClient function
+function selectClient(client) {
+    // Update hidden input and display card
+    document.getElementById('client_id').value = client.client_id;
+    document.getElementById('display_name').textContent = `${client.client_lastname} ${client.client_surname}`;
+    document.getElementById('display_mobile').textContent = client.client_mobile || '-';
+    document.getElementById('display_email').textContent = client.client_email || '-';
+    document.getElementById('display_address').textContent = client.client_address || '-';
+    
+    // Auto-fill quote details
+    document.getElementById('quote_property_address').value = client.client_address || '';
+    document.getElementById('contact_number').value = client.client_mobile || '';
+    document.getElementById('contact_email').value = client.client_email || '';
+    
+    // Update UI
+    document.getElementById('selectedClientCard').classList.remove('d-none');
+    document.getElementById('searchResults').classList.add('d-none');
+    document.getElementById('client_search').value = '';
+}
+
+// Add this new function after selectClient
+function clearQuoteDetails() {
+    document.getElementById('quote_property_address').value = '';
+    document.getElementById('contact_number').value = '';
+    document.getElementById('contact_email').value = '';
+}
+
+// Add this event listener to clear form when starting a new client search
+document.getElementById('client_search').addEventListener('focus', function() {
+    if (document.getElementById('client_id').value) {
+        if (confirm('Do you want to select a different client? This will clear the current quote details.')) {
+            document.getElementById('client_id').value = '';
+            document.getElementById('selectedClientCard').classList.add('d-none');
+            clearQuoteDetails();
+        } else {
+            this.blur();
+        }
+    }
+});
+
+// Add new client
+document.getElementById('saveClientBtn').addEventListener('click', async function() {
+    const form = document.getElementById('addClientForm');
+    const formData = new FormData(form);
+    const clientData = Object.fromEntries(formData.entries());
+
+    try {
+        const response = await fetch('/clients/create', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
-            body: JSON.stringify(quoteData)
-        })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return res.json();
-        })
-        .then(data => {
-            if (data.success) {
-                window.location.href = `/quotes/${data.quoteId}`;
-            } else {
-                throw new Error(data.message || 'Error creating quote');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message);
+            body: JSON.stringify(clientData)
         });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // Close modal and select the new client
+            const modal = bootstrap.Modal.getInstance(document.getElementById('addClientModal'));
+            modal.hide();
+            selectClient(result.client);
+            form.reset();
+        } else {
+            alert(result.message || 'Error creating client');
+        }
+    } catch (error) {
+        console.error('Error creating client:', error);
+        alert('Error creating client');
+    }
+});
+
+// Item management
+function addItem() {
+    const tbody = document.querySelector('#items-table tbody');
+    const row = document.createElement('tr');
+    row.innerHTML = `
+        <td>
+            <input type="text" class="form-control" name="items[${itemCount}][name]" required>
+        </td>
+        <td>
+            <input type="text" class="form-control" name="items[${itemCount}][description]">
+        </td>
+        <td>
+            <input type="number" class="form-control item-price" name="items[${itemCount}][price]" 
+                   step="0.01" value="0.00" required oninput="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" class="form-control item-quantity" name="items[${itemCount}][quantity]" 
+                   value="1" min="1" required oninput="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" class="form-control item-discount" name="items[${itemCount}][discount]" 
+                   value="0.00" step="0.01" oninput="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" class="form-control item-total" name="items[${itemCount}][total]" 
+                   value="0.00" readonly>
+        </td>
+        <td>
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(row);
+    itemCount++;
+    calculateTotal(row.querySelector('.item-price'));
+}
+
+function removeItem(button) {
+    button.closest('tr').remove();
+    updateTotals();
+}
+
+function calculateTotal(input) {
+    const row = input.closest('tr');
+    const price = parseFloat(row.querySelector('.item-price').value) || 0;
+    const quantity = parseInt(row.querySelector('.item-quantity').value) || 1;
+    const discount = parseFloat(row.querySelector('.item-discount').value) || 0;
+    const total = (price * quantity) - discount;
+    row.querySelector('.item-total').value = total.toFixed(2);
+    updateTotals();
+}
+
+function updateTotals() {
+    let subtotal = 0;
+    document.querySelectorAll('.item-total').forEach(input => {
+        subtotal += parseFloat(input.value) || 0;
     });
 
-    // Initial calculation
-    calculateTotals();
+    const gst = subtotal * 0.15;
+    const total = subtotal + gst;
+
+    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('gst').textContent = `$${gst.toFixed(2)}`;
+    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    
+    document.getElementById('total_amount').value = total.toFixed(2);
+    document.getElementById('tax_amount').value = gst.toFixed(2);
+}
+
+// Form submission
+document.getElementById('create-quote-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    if (!document.getElementById('client_id').value) {
+        alert('Please select a client');
+        return;
+    }
+
+    try {
+        const items = Array.from(document.querySelectorAll('#items-table tbody tr')).map(row => ({
+            item_name: row.querySelector('[name$="[name]"]').value,
+            item_description: row.querySelector('[name$="[description]"]').value,
+            item_price: parseFloat(row.querySelector('[name$="[price]"]').value) || 0,
+            item_quantity: parseInt(row.querySelector('[name$="[quantity]"]').value) || 1,
+            item_discount_price: parseFloat(row.querySelector('[name$="[discount]"]').value) || 0,
+            item_total_price: parseFloat(row.querySelector('[name$="[total]"]').value) || 0
+        }));
+
+        const quoteData = {
+            client_id: document.getElementById('client_id').value,
+            quote_property_address: document.getElementById('quote_property_address').value,
+            contact_number: document.getElementById('contact_number').value,
+            contact_email: document.getElementById('contact_email').value,
+            total_amount: parseFloat(document.getElementById('total_amount').value),
+            tax_amount: parseFloat(document.getElementById('tax_amount').value),
+            items: items
+        };
+
+        const response = await fetch('/quotes/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(quoteData)
+        });
+
+        const result = await response.json();
+        
+        if (result.success) {
+            window.location.href = `/quotes/${result.quoteId}`;
+        } else {
+            throw new Error(result.message || 'Error creating quote');
+        }
+    } catch (error) {
+        console.error('Error creating quote:', error);
+        alert(error.message || 'Failed to create quote. Please try again.');
+    }
+});
+
+// Initialize first item row
+document.addEventListener('DOMContentLoaded', () => {
+    addItem();
 });
 </script>
+

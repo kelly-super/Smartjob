@@ -40,7 +40,7 @@
                     <dd class="col-sm-8"><%= new Date(quote.quote_date).toLocaleDateString() %></dd>
                     
                     <dt class="col-sm-4">Quote Total:</dt>
-                    <dd class="col-sm-8">$<%= quote.quote_price.toFixed(2) %></dd>
+                    <dd class="col-sm-8">$<%= (quote.quote_price || quote.total_amount || 0).toFixed(2) %></dd>
                 </dl>
             </div>
         </div>

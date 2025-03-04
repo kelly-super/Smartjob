@@ -91,14 +91,20 @@ db.serialize(() => {
     db.run(`CREATE TABLE IF NOT EXISTS quotes (
       quote_id INTEGER PRIMARY KEY AUTOINCREMENT,
       client_id INTEGER NOT NULL,
-      client_name TEXT NOT NULL,
+      quote_number TEXT NOT NULL,
       quote_property_address TEXT,
       contact_number TEXT,
       contact_email TEXT,
-      quote_price REAL,
+      total_amount REAL DEFAULT 0,
+      tax_amount REAL DEFAULT 0,
+      quote_price REAL DEFAULT 0, -- Changed comment style from -- to --
       quote_remark TEXT,
       quote_pdf TEXT,
+      quote_status TEXT DEFAULT 'Valid',
+      quote_picture TEXT,
       quote_date TEXT DEFAULT CURRENT_TIMESTAMP,
+      create_date TEXT DEFAULT CURRENT_TIMESTAMP,
+      update_date TEXT,
       FOREIGN KEY (client_id) REFERENCES clients(client_id)
     )`);
 
@@ -108,7 +114,9 @@ db.run(`CREATE TABLE IF NOT EXISTS quote_items (
   item_name TEXT NOT NULL,
   item_description TEXT,
   item_price REAL,
+  item_quantity INTEGER,
   item_discount_price REAL,
+  item_total_price REAL DEFAULT 0,
   item_remark TEXT,
   create_date TEXT DEFAULT CURRENT_TIMESTAMP,
   FOREIGN KEY (quote_id) REFERENCES quotes(quote_id)

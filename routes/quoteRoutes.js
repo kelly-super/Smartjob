@@ -4,6 +4,156 @@ const router = express.Router();
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+
+// Add these routes before other quote routes
+router.get('/defaultsliding', async (req, res) => {
+    try {
+        const [clients, company] = await Promise.all([
+            new Promise((resolve, reject) => {
+                db.all('SELECT * FROM clients WHERE status = "Valid"', [], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows);
+                });
+            }),
+            new Promise((resolve, reject) => {
+                db.get('SELECT * FROM companies LIMIT 1', [], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
+            })
+        ]);
+
+        // Default items for sliding door quote
+        const defaultItems = [
+            {
+                item_name: 'Door Removal',
+                item_description: 'Remove existing sliding door',
+                item_price: 180.00,
+                item_quantity: 1,
+                item_discount_price: 0,
+                item_total_price: 180.00
+            },
+            {
+                item_name: 'Supply & Install',
+                item_description: 'Supply and install new aluminum sliding door',
+                item_price: 1250.00,
+                item_quantity: 1,
+                item_discount_price: 0,
+                item_total_price: 1250.00
+            },
+            {
+                item_name: 'Supply & Install',
+                item_description: 'Supply and install new aluminum sliding door',
+                item_price: 1250.00,
+                item_quantity: 1,
+                item_discount_price: 0,
+                item_total_price: 1250.00
+            },
+            {
+                item_name: 'Supply & Install',
+                item_description: 'Supply and install new aluminum sliding door',
+                item_price: 1250.00,
+                item_quantity: 1,
+                item_discount_price: 0,
+                item_total_price: 1250.00
+            },
+            {
+                item_name: 'Supply & Install',
+                item_description: 'Supply and install new aluminum sliding door',
+                item_price: 1250.00,
+                item_quantity: 1,
+                item_discount_price: 0,
+                item_total_price: 1250.00
+            }
+        ];
+
+        res.render('partials/layout', {
+            title: 'New Sliding Door Quote',
+            body: '../quotes/new',
+            clients,
+            company,
+            defaultItems: JSON.stringify(defaultItems) // Stringify the items
+        });
+
+    } catch (err) {
+        console.error('Error loading default sliding quote:', err);
+        req.flash('error_msg', 'Error loading form');
+        res.redirect('/quotes');
+    }
+});
+
+router.get('/defaultswing', async (req, res) => {
+    try {
+        const [clients, company] = await Promise.all([
+            new Promise((resolve, reject) => {
+                db.all('SELECT * FROM clients WHERE status = "Valid"', [], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows);
+                });
+            }),
+            new Promise((resolve, reject) => {
+                db.get('SELECT * FROM companies LIMIT 1', [], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
+            })
+        ]);
+
+        // Default items for swing door quote
+        const defaultItems = [
+            {
+                name: 'Door Removal',
+                description: 'Remove existing swing door',
+                price: 150.00,
+                quantity: 1
+            },
+            {
+                name: 'Supply & Install',
+                description: 'Supply and install new aluminum swing door',
+                price: 980.00,
+                quantity: 1
+            },
+            {
+                name: 'Door Closer',
+                description: 'Heavy duty door closer installation',
+                price: 165.00,
+                quantity: 1
+            },
+            {
+                name: 'Lock Set',
+                description: 'Premium quality lockset with keys',
+                price: 95.00,
+                quantity: 1
+            },
+            {
+                name: 'Disposal',
+                description: 'Removal and disposal of old door',
+                price: 120.00,
+                quantity: 1
+            },
+            {
+                name: 'Clean Up',
+                description: 'Site cleanup and rubbish removal',
+                price: 75.00,
+                quantity: 1
+            }
+        ];
+
+        res.render('partials/layout', {
+            title: 'New Swing Door Quote',
+            body: '../quotes/new',
+            clients,
+            company,
+            defaultItems
+        });
+
+    } catch (err) {
+        console.error('Error loading default swing quote:', err);
+        req.flash('error_msg', 'Error loading form');
+        res.redirect('/quotes');
+    }
+});
+
 // Display all quotes (with search functionality)
 router.get('/', async (req, res) => {
     try {
@@ -160,45 +310,39 @@ router.post('/createQuote', (req, res) => {
 });
 
 // Display a single quote
-router.get('/:id', (req, res) => {
-    const quoteId = req.params.id;
-
-    db.serialize(() => {
-        // Get quote details
-        db.get(`
-            SELECT q.*, c.client_lastname, c.client_surname
-            FROM quotes q
-            LEFT JOIN clients c ON q.client_id = c.client_id
-            WHERE q.quote_id = ?
-        `, [quoteId], (err, quote) => {
-            if (err || !quote) {
-                req.flash('error_msg', 'Quote not found');
-                return res.redirect('/quotes');
-            }
-
-            // Get quote items
-            db.all(`
-                SELECT quote_item_id, item_name, item_description, 
-                       item_price, item_discount_price, item_remark
-                FROM quote_items 
-                WHERE quote_id = ?
-                ORDER BY quote_item_id
-            `, [quoteId], (err, items) => {
-                if (err) {
-                    console.error('Error fetching quote items:', err);
-                    req.flash('error_msg', 'Error loading quote items');
-                    return res.redirect('/quotes');
-                }
-
-                res.render('partials/layout', {
-                    title: `Quote #${quote.quote_id}`,
-                    body: '../quotes/show',
-                    quote,
-                    items: items || []
-                });
+router.get('/:id', async (req, res) => {
+    try {
+        const quote = await new Promise((resolve, reject) => {
+            db.get(`
+                SELECT q.*, 
+                       c.client_lastname, 
+                       c.client_surname,
+                       q.total_amount as quote_price  // Add this alias
+                FROM quotes q
+                LEFT JOIN clients c ON c.client_id = q.client_id
+                WHERE q.quote_id = ?
+            `, [req.params.id], (err, row) => {
+                if (err) reject(err);
+                if (!row) reject(new Error('Quote not found'));
+                resolve(row);
             });
         });
-    });
+
+        // ... rest of your code ...
+
+        res.render('partials/layout', {
+            title: `Quote #${quote.quote_number}`,
+            body: '../quotes/show',
+            quote,
+            items,
+            company
+        });
+
+    } catch (err) {
+        console.error('Error fetching quote:', err);
+        req.flash('error_msg', 'Quote not found');
+        res.redirect('/quotes');
+    }
 });
 
 // Display form to edit a quote
@@ -377,90 +521,141 @@ router.post('/:id/delete', (req, res) => {
   });
 });
 
+async function generateQuoteNumber() {
+    const date = new Date();
+    const prefix = date.getFullYear().toString() +
+                  String(date.getMonth() + 1).padStart(2, '0') +
+                  String(date.getDate()).padStart(2, '0');
+    
+    try {
+        const lastQuote = await new Promise((resolve, reject) => {
+            db.get(`
+                SELECT quote_number 
+                FROM quotes 
+                WHERE quote_number LIKE ?
+                ORDER BY quote_number DESC 
+                LIMIT 1
+            `, [`${prefix}%`], (err, row) => {
+                if (err) reject(err);
+                resolve(row);
+            });
+        });
+
+        let sequence = 1;
+        if (lastQuote) {
+            sequence = parseInt(lastQuote.quote_number.slice(-4)) + 1;
+        }
+
+        return `${prefix}${String(sequence).padStart(4, '0')}`;
+    } catch (err) {
+        console.error('Error generating quote number:', err);
+        throw err;
+    }
+}
 // Create new quote
 router.post('/create', async (req, res) => {
-    const { 
-        client_id, 
-        client_name,
+    const {
+        client_id,
         quote_property_address,
         contact_number,
         contact_email,
-        quote_price,
-        items 
+        total_amount,
+        tax_amount,
+        items
     } = req.body;
-
-    if (!client_id || !items || !items.length) {
-        return res.json({ 
-            success: false, 
-            message: 'Missing required fields' 
-        });
-    }
-
+ console.log("quote req.body=========",req.body);
     try {
-        db.serialize(() => {
-            db.run('BEGIN TRANSACTION');
+        // Start transaction
+        await new Promise((resolve, reject) => {
+            db.run('BEGIN TRANSACTION', err => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
 
-            // Insert quote
+        // Generate quote number
+        const quoteNumber = await generateQuoteNumber();
+
+        // Insert quote
+        const result = await new Promise((resolve, reject) => {
             db.run(`
                 INSERT INTO quotes (
                     client_id,
-                    client_name,
+                    quote_number,
                     quote_property_address,
                     contact_number,
                     contact_email,
-                    quote_price,
-                    quote_date
-                ) VALUES (?, ?,?, ?, ?, ?, CURRENT_TIMESTAMP)`,
-                [client_id, client_name, quote_property_address, contact_number, contact_email, quote_price],
-                function(err) {
-                    if (err) {
-                        console.error('Error creating quote:', err);
-                        db.run('ROLLBACK');
-                        return res.json({ 
-                            success: false, 
-                            message: 'Error creating quote' 
-                        });
-                    }
-
-                    const quoteId = this.lastID;
-                    const stmt = db.prepare(`
-                        INSERT INTO quote_items (
-                            quote_id,
-                            item_name,
-                            item_description,
-                            item_price,
-                            item_discount_price,
-                            item_remark
-                        ) VALUES (?, ?, ?, ?, ?, ?)`
-                    );
-
-                    // Insert quote items
-                    items.forEach(item => {
-                        stmt.run([
-                            quoteId,
-                            item.item_name,
-                            item.item_description,
-                            item.item_price,
-                            item.item_discount,
-                            item.item_remark
-                        ]);
-                    });
-
-                    stmt.finalize();
-                    db.run('COMMIT');
-
-                    res.json({ 
-                        success: true, 
-                        quoteId: quoteId 
-                    });
-                }
-            );
+                    total_amount,
+                    tax_amount, 
+                                    quote_date
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+            `, [
+                client_id,
+                quoteNumber,
+                quote_property_address,
+                contact_number,
+                contact_email,
+                total_amount,
+                tax_amount
+            ], function(err) {
+                if (err) reject(err);
+                resolve(this.lastID);
+            });
         });
+
+        // Insert items
+        for (const item of items) {
+            await new Promise((resolve, reject) => {
+                db.run(`
+                    INSERT INTO quote_items (
+                        quote_id,
+                        item_name,
+                        item_description,
+                        item_price,
+                        item_quantity,
+                        item_discount_price,
+                        item_total_price,
+                        create_date
+                    ) VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+                `, [
+                    result,
+                    item.item_name,
+                    item.item_description,
+                    item.item_price,
+                    item.item_quantity,
+                    item.item_discount_price,
+                    item.item_total_price
+                ], err => {
+                    if (err) reject(err);
+                    resolve();
+                });
+            });
+        }
+
+        // Commit transaction
+        await new Promise((resolve, reject) => {
+            db.run('COMMIT', err => {
+                if (err) reject(err);
+                resolve();
+            });
+        });
+
+        res.json({
+            success: true,
+            quoteId: result,
+            message: 'Quote created successfully'
+        });
+
     } catch (err) {
-        console.error('Error:', err);
-        res.json({ 
-            success: false, 
-            message: 'Server error' 
+        // Rollback on error
+        await new Promise(resolve => {
+            db.run('ROLLBACK', resolve);
+        });
+
+        console.error('Error creating quote:', err);
+        res.status(500).json({
+            success: false,
+            message: err.message || 'Failed to create quote'
         });
     }
 });
