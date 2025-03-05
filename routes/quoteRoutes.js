@@ -48,22 +48,6 @@ router.get('/defaultsliding', async (req, res) => {
                 item_quantity: 1,
                 item_discount_price: 0,
                 item_total_price: 1250.00
-            },
-            {
-                item_name: 'Supply & Install',
-                item_description: 'Supply and install new aluminum sliding door',
-                item_price: 1250.00,
-                item_quantity: 1,
-                item_discount_price: 0,
-                item_total_price: 1250.00
-            },
-            {
-                item_name: 'Supply & Install',
-                item_description: 'Supply and install new aluminum sliding door',
-                item_price: 1250.00,
-                item_quantity: 1,
-                item_discount_price: 0,
-                item_total_price: 1250.00
             }
         ];
 
@@ -205,7 +189,7 @@ router.get('/', async (req, res) => {
             }),
             new Promise((resolve, reject) => {
                 db.all(`
-                    SELECT q.*, c.client_lastname || ' ' || COALESCE(c.client_surname, '') as client_name
+                    SELECT q.*, c.client_lastname || ' ' || COALESCE(c.client_surname, '') as client_name,c.client_mobile 
                     FROM quotes q
                     LEFT JOIN clients c ON q.client_id = c.client_id
                     ${whereSQL}
@@ -310,25 +294,55 @@ router.post('/createQuote', (req, res) => {
 });
 
 // Display a single quote
+// Show single quote
 router.get('/:id', async (req, res) => {
     try {
-        const quote = await new Promise((resolve, reject) => {
-            db.get(`
-                SELECT q.*, 
-                       c.client_lastname, 
-                       c.client_surname,
-                       q.total_amount as quote_price  // Add this alias
-                FROM quotes q
-                LEFT JOIN clients c ON c.client_id = q.client_id
-                WHERE q.quote_id = ?
-            `, [req.params.id], (err, row) => {
-                if (err) reject(err);
-                if (!row) reject(new Error('Quote not found'));
-                resolve(row);
-            });
-        });
-
-        // ... rest of your code ...
+        const [quote, items, company] = await Promise.all([
+            // Get quote with client details
+            new Promise((resolve, reject) => {
+                db.get(`
+                    SELECT q.*, 
+                           c.client_lastname, 
+                           c.client_surname,
+                           c.client_mobile,
+                           c.client_email,
+                           c.client_address
+                    FROM quotes q
+                    LEFT JOIN clients c ON c.client_id = q.client_id
+                    WHERE q.quote_id = ?
+                `, [req.params.id], (err, row) => {
+                    if (err) reject(err);
+                    if (!row) reject(new Error('Quote not found'));
+                    resolve(row);
+                });
+            }),
+            // Get quote items
+            new Promise((resolve, reject) => {
+                db.all(`
+                    SELECT 
+                        quote_item_id,
+                        item_name,
+                        item_description,
+                        item_price,
+                        item_quantity,
+                        item_discount_price,
+                        COALESCE(item_total_price, (item_price * item_quantity) - COALESCE(item_discount_price, 0)) as item_total_price
+                    FROM quote_items 
+                    WHERE quote_id = ?
+                    ORDER BY quote_item_id
+                `, [req.params.id], (err, rows) => {
+                    if (err) reject(err);
+                    resolve(rows || []);
+                });
+            }),
+            // Get company details
+            new Promise((resolve, reject) => {
+                db.get('SELECT * FROM companies LIMIT 1', [], (err, row) => {
+                    if (err) reject(err);
+                    resolve(row);
+                });
+            })
+        ]);
 
         res.render('partials/layout', {
             title: `Quote #${quote.quote_number}`,
@@ -345,6 +359,8 @@ router.get('/:id', async (req, res) => {
     }
 });
 
+
+
 // Display form to edit a quote
 router.get('/:id/edit', (req, res) => {
     const quoteId = req.params.id;
@@ -352,7 +368,7 @@ router.get('/:id/edit', (req, res) => {
     db.serialize(() => {
         // Get quote details with client info
         db.get(`
-            SELECT q.*, c.client_lastname, c.client_surname
+            SELECT q.*, c.client_lastname, c.client_surname,c.client_mobile,c.client_email,c.client_address 
             FROM quotes q
             LEFT JOIN clients c ON q.client_id = c.client_id
             WHERE q.quote_id = ?
@@ -405,10 +421,11 @@ router.post('/:id/edit', (req, res) => {
     const quoteId = req.params.id;
     const { 
         client_id, 
-        client_name, 
         quote_property_address, 
         contact_number, 
         contact_email, 
+        total_amount,
+        tax_amount,
         quote_price,
         items 
     } = req.body;
@@ -421,14 +438,15 @@ router.post('/:id/edit', (req, res) => {
             db.run(`
                 UPDATE quotes 
                 SET client_id = ?, 
-                    client_name = ?, 
-                    quote_property_address = ?, 
+                   quote_property_address = ?, 
                     contact_number = ?, 
                     contact_email = ?, 
+                    total_amount = ?,
+                    tax_amount = ?,
                     quote_price = ?
                 WHERE quote_id = ?`,
-                [client_id, client_name, quote_property_address, 
-                 contact_number, contact_email, quote_price, quoteId],
+                [client_id, quote_property_address, 
+                 contact_number, contact_email, total_amount, tax_amount, quote_price, quoteId],
                 function(err) {
                     if (err) {
                         console.error('Error updating quote:', err);
@@ -458,8 +476,9 @@ router.post('/:id/edit', (req, res) => {
                                 item_description,
                                 item_price,
                                 item_discount_price,
+                                item_total_price,
                                 item_remark
-                            ) VALUES (?, ?, ?, ?, ?, ?)`
+                            ) VALUES (?, ?, ?, ?, ?, ?, ?)`
                         );
 
                         try {
@@ -471,6 +490,7 @@ router.post('/:id/edit', (req, res) => {
                                     item.item_description,
                                     item.item_price,
                                     item.item_discount_price,
+                                    item.item_total_price,
                                     item.item_remark
                                 ]);
                             });
@@ -602,9 +622,10 @@ router.post('/create', async (req, res) => {
                 resolve(this.lastID);
             });
         });
-
+console.log("result=========",result);
         // Insert items
         for (const item of items) {
+            console.log("item=========",item);
             await new Promise((resolve, reject) => {
                 db.run(`
                     INSERT INTO quote_items (
@@ -746,7 +767,7 @@ console.log("profile.company_email=========",profile.company_email);
         // Left column - Quote details
         doc.text('Quote Details:', 50, 200)
            .fontSize(10)
-           .text(`Quote #: ${quoteId}`, 50, 220)
+           .text(`Quote #: ${quote.quote_number}`, 50, 220)
            .text(`Date: ${new Date().toLocaleDateString()}`, 50, 235)
            .text(`Property: ${quote.quote_property_address || ''}`, 50, 250);
 
@@ -853,63 +874,11 @@ console.log("profile.company_email=========",profile.company_email);
     }
 }
 
-router.get('/generate-pdf', (req, res) => {
-  const doc = new PDFDocument();
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', 'inline; filename="quote.pdf"');
-
-  doc.pipe(res);
-
-  // Add a logo
-  doc.image('logo.png', 50, 50, { width: 100 });
-
-  // Add a title
-  doc.fontSize(25).text('Quote Details', 50, 150);
-
-  // Add client information
-  doc.fontSize(14).text('Client Name: John Doe', 50, 200);
-  doc.fontSize(14).text('Email: john.doe@example.com', 50, 220);
-  doc.fontSize(14).text('Address: 123 Main St, City, Country', 50, 240);
-
-  // Add a table for products
-  const products = [
-    { code: '001', description: 'Product 1', price: 50, discount: 5 },
-    { code: '002', description: 'Product 2', price: 30, discount: 0 },
-  ];
-
-  let y = 280;
-  doc.fontSize(12).text('Item Code', 50, y);
-  doc.text('Description', 150, y);
-  doc.text('Price', 300, y);
-  doc.text('Discount', 400, y);
-  doc.text('Total', 500, y);
-
-  y += 20;
-  products.forEach(product => {
-    doc.text(product.code, 50, y);
-    doc.text(product.description, 150, y);
-    doc.text(`$${product.price.toFixed(2)}`, 300, y);
-    doc.text(`$${product.discount.toFixed(2)}`, 400, y);
-    doc.text(`$${(product.price - product.discount).toFixed(2)}`, 500, y);
-    y += 20;
-  });
-
-  // Add totals
-  doc.fontSize(14).text('Total Amount: $100.00', 50, y + 20);
-  doc.text('GST (15%): $15.00', 50, y + 40);
-  doc.text('Final Price: $115.00', 50, y + 60);
-
-  doc.end();
-});
-
 // Generate PDF
 router.post('/:id/generate-pdf', async (req, res) => {
     const quoteId = req.params.id;
     
     try {
-        
-        
-
         generateQuotePDF(quoteId);
 
         res.json({ success: true });

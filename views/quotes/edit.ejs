@@ -1,242 +1,323 @@
 <div class="card">
-    <div class="card-header">
-        <div class="d-flex justify-content-between align-items-center">
-            <h4>Edit Quote #<%= quote.quote_id %></h4>
-            <div>
-                <% if (quote.quote_pdf) { %>
-                    <a href="/quotes/<%= quote.quote_id %>/pdf" class="btn btn-secondary" target="_blank">
-                        <i class="bi bi-file-pdf"></i> View PDF
-                    </a>
-                <% } %>
-            </div>
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4>Edit Quote #<%= quote.quote_number %></h4>
+        <div>
+            <button type="button" class="btn btn-secondary" id="previewPDF">
+                <i class="bi bi-file-pdf"></i> Preview PDF
+            </button>
         </div>
     </div>
     
     <div class="card-body">
         <form id="edit-quote-form">
-            <input type="hidden" name="quote_id" value="<%= quote.quote_id %>">
-            
-            <!-- Client Information (Read-only) -->
-            <div class="mb-4">
-                <h5>Client Information</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="card">
-                            <div class="card-body">
-                                <p class="mb-1"><strong>Client Name:</strong> <%= quote.client_name %></p>
-                                <input type="hidden" name="client_id" value="<%= quote.client_id %>">
-                                <input type="hidden" name="client_name" value="<%= quote.client_name %>">
+            <!-- Client Information -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Client Information</h5>
+                    <div id="selectedClientCard" class="card">
+                        <div class="card-body">
+                            <input type="hidden" id="client_id" name="client_id" value="<%= quote.client_id %>" required>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Name:</strong></div>
+                                <div class="col-sm-8" id="display_name">
+                                    <%= quote.client_lastname %> <%= quote.client_surname %>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Mobile:</strong></div>
+                                <div class="col-sm-8" id="display_mobile"><%= quote.client_mobile || '-' %></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Email:</strong></div>
+                                <div class="col-sm-8" id="display_email"><%= quote.client_email || '-' %></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-4"><strong>Address:</strong></div>
+                                <div class="col-sm-8" id="display_address"><%= quote.client_address || '-' %></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Quote Details -->
+                <div class="col-md-6">
+                    <h5 class="border-bottom pb-2">Quote Details</h5>
+                    <div class="mb-3">
+                        <label class="form-label">Property Address</label>
+                        <input type="text" 
+                               class="form-control" 
+                               name="quote_property_address" 
+                               id="quote_property_address"
+                               value="<%= quote.quote_property_address %>"
+                               required>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contact Number</label>
+                                <input type="tel" 
+                                       class="form-control" 
+                                       name="contact_number"
+                                       id="contact_number"
+                                       value="<%= quote.contact_number %>">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Contact Email</label>
+                                <input type="email" 
+                                       class="form-control" 
+                                       name="contact_email"
+                                       id="contact_email"
+                                       value="<%= quote.contact_email %>">
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Quote Details -->
+            <!-- Items Table -->
             <div class="mb-4">
-                <h5>Quote Details</h5>
-                <div class="row">
-                    <div class="col-md-6">
-                        <div class="mb-3">
-                            <label class="form-label">Property Address</label>
-                            <input type="text" class="form-control" name="quote_property_address" 
-                                   value="<%= quote.quote_property_address %>" required>
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-3">
-                            <label class="form-label">Contact Number</label>
-                            <input type="tel" class="form-control" name="contact_number" 
-                                   value="<%= quote.contact_number %>">
-                        </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="mb-3">
-                            <label class="form-label">Contact Email</label>
-                            <input type="email" class="form-control" name="contact_email" 
-                                   value="<%= quote.contact_email %>">
-                        </div>
-                    </div>
+                <h5 class="border-bottom pb-2 d-flex justify-content-between align-items-center">
+                    Quote Items
+                    <button type="button" class="btn btn-success btn-sm" onclick="addItem()">
+                        <i class="bi bi-plus-lg"></i> Add Item
+                    </button>
+                </h5>
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="items-table">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Item</th>
+                                <th>Description</th>
+                                <th style="width: 120px">Price</th>
+                                <th style="width: 100px">Quantity</th>
+                                <th style="width: 120px">Discount</th>
+                                <th style="width: 120px">Total</th>
+                                <th style="width: 70px">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% items.forEach((item, index) => { %>
+                                <tr class="item-row">
+                                    <td>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               name="items[<%= index %>][name]" 
+                                               value="<%= item.item_name %>"
+                                               required>
+                                    </td>
+                                    <td>
+                                        <input type="text" 
+                                               class="form-control" 
+                                               name="items[<%= index %>][description]"
+                                               value="<%= item.item_description %>">
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control item-price" 
+                                               name="items[<%= index %>][price]" 
+                                               value="<%= item.item_price %>"
+                                               step="0.01" 
+                                               required 
+                                               oninput="calculateTotal(this)">
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control item-quantity" 
+                                               name="items[<%= index %>][quantity]" 
+                                               value="<%= item.item_quantity %>"
+                                               min="1" 
+                                               required 
+                                               oninput="calculateTotal(this)">
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control item-discount" 
+                                               name="items[<%= index %>][discount]" 
+                                               value="<%= item.item_discount_price %>"
+                                               step="0.01" 
+                                               oninput="calculateTotal(this)">
+                                    </td>
+                                    <td>
+                                        <input type="number" 
+                                               class="form-control item-total" 
+                                               name="items[<%= index %>][total]" 
+                                               value="<%= item.item_total_price %>"
+                                               readonly>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" 
+                                                class="btn btn-sm btn-danger"
+                                                onclick="removeItem(this)">
+                                            <i class="bi bi-trash"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <% }); %>
+                        </tbody>
+                    </table>
                 </div>
-            </div>
-
-            <!-- Quote Items -->
-            <div class="mb-4">
-                <h5>Quote Items</h5>
-                <div id="quote_items">
-                    <% items.forEach(item => { %>
-                        <div class="quote-item row mb-2">
-                            <input type="hidden" name="quote_item_id[]" value="<%= item.quote_item_id %>">
-                            <div class="col-md-3">
-                                <input type="text" class="form-control" name="item_name[]" 
-                                       value="<%= item.item_name %>" required>
-                            </div>
-                            <div class="col-md-3">
-                                <input type="text" class="form-control" name="item_description[]" 
-                                       value="<%= item.item_description %>">
-                            </div>
-                            <div class="col-md-2">
-                                <input type="number" class="form-control price" name="item_price[]" 
-                                       value="<%= item.item_price %>" step="0.01" required>
-                            </div>
-                            <div class="col-md-2">
-                                <input type="number" class="form-control discount" name="item_discount_price[]" 
-                                       value="<%= item.item_discount_price %>" step="0.01">
-                            </div>
-                            <div class="col-md-2">
-                                <button type="button" class="btn btn-danger remove-item">
-                                    <i class="bi bi-trash"></i>
-                                </button>
-                            </div>
-                            <div class="col-12 mt-2">
-                                <input type="text" class="form-control" name="item_remark[]" 
-                                       value="<%= item.item_remark %>" placeholder="Remark">
-                            </div>
-                        </div>
-                    <% }); %>
-                </div>
-                <button type="button" id="add_item" class="btn btn-secondary mt-2">
-                    <i class="bi bi-plus"></i> Add Item
-                </button>
             </div>
 
             <!-- Totals Section -->
-            <div class="row justify-content-end">
-                <div class="col-md-4">
-                    <div class="card">
+            <div class="row">
+                <div class="col-md-4 offset-md-8">
+                    <div class="card bg-light">
                         <div class="card-body">
-                            <div class="mb-2">
-                                <label class="form-label">Subtotal</label>
-                                <input type="number" class="form-control" id="subtotal" readonly>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">GST (15%)</label>
-                                <input type="number" class="form-control" id="gst" readonly>
-                            </div>
-                            <div class="mb-2">
-                                <label class="form-label">Total</label>
-                                <input type="number" class="form-control" id="total" name="quote_price" readonly>
+                            <div class="row g-2">
+                                <div class="col-6">Subtotal:</div>
+                                <div class="col-6 text-end" id="subtotal">$0.00</div>
+                                
+                                <div class="col-6">GST (15%):</div>
+                                <div class="col-6 text-end" id="gst">$0.00</div>
+                                
+                                <div class="col-6 fw-bold">Total:</div>
+                                <div class="col-6 text-end fw-bold" id="total">$0.00</div>
+                                
+                                <input type="hidden" name="total_amount" id="total_amount" value="<%= quote.total_amount %>">
+                                <input type="hidden" name="tax_amount" id="tax_amount" value="<%= quote.tax_amount %>">
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="mt-4">
-                <button type="submit" class="btn btn-primary">Save Changes</button>
-                <a href="/quotes/<%= quote.quote_id %>" class="btn btn-secondary">Cancel</a>
+            <!-- Form Actions -->
+            <div class="text-end mt-4">
+                <a href="/quotes/<%= quote.quote_id %>" class="btn btn-secondary me-2">Cancel</a>
+                <button type="submit" class="btn btn-primary">
+                    <i class="bi bi-save"></i> Update Quote
+                </button>
             </div>
         </form>
     </div>
 </div>
 
 <script>
+let itemCount = '<%= items.length %>';
+// Initialize calculations
 document.addEventListener('DOMContentLoaded', function() {
-    const quoteId = '<%= quote.quote_id %>'; // Get quote ID from template
-    const quoteItems = document.getElementById('quote_items');
-    const addItemBtn = document.getElementById('add_item');
-    const itemTemplate = quoteItems.children[0].cloneNode(true);
+    // Calculate totals for all existing items
+    document.querySelectorAll('.item-row').forEach(row => {
+        calculateTotal(row.querySelector('.item-price'));
+    });
+});
 
-    // Add new item
-    addItemBtn.onclick = () => {
-        const newItem = itemTemplate.cloneNode(true);
-        newItem.querySelectorAll('input').forEach(input => {
-            input.value = '';
-            if (input.name === 'quote_item_id[]') {
-                input.value = '0';
-            }
-        });
-        quoteItems.appendChild(newItem);
-        calculateTotals();
-    };
+function addItem() {
+    const tbody = document.querySelector('#items-table tbody');
+    const row = document.createElement('tr');
+    row.className = 'item-row';
+    row.innerHTML = `
+        <td>
+            <input type="text" class="form-control" name="items[${itemCount}][name]" required>
+        </td>
+        <td>
+            <input type="text" class="form-control" name="items[${itemCount}][description]">
+        </td>
+        <td>
+            <input type="number" class="form-control item-price" name="items[${itemCount}][price]" 
+                   step="0.01" value="0.00" required oninput="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" class="form-control item-quantity" name="items[${itemCount}][quantity]" 
+                   value="1" min="1" required oninput="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" class="form-control item-discount" name="items[${itemCount}][discount]" 
+                   value="0.00" step="0.01" oninput="calculateTotal(this)">
+        </td>
+        <td>
+            <input type="number" class="form-control item-total" name="items[${itemCount}][total]" 
+                   value="0.00" readonly>
+        </td>
+        <td class="text-center">
+            <button type="button" class="btn btn-sm btn-danger" onclick="removeItem(this)">
+                <i class="bi bi-trash"></i>
+            </button>
+        </td>
+    `;
+    tbody.appendChild(row);
+    itemCount++;
+    calculateTotal(row.querySelector('.item-price'));
+}
 
-    // Remove item
-    quoteItems.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-item') || 
-            e.target.closest('.remove-item')) {
-            if (quoteItems.children.length > 1) {
-                e.target.closest('.quote-item').remove();
-                calculateTotals();
-            }
-        }
+function removeItem(button) {
+    if (document.querySelectorAll('.item-row').length > 1) {
+        button.closest('tr').remove();
+        updateTotals();
+    }
+}
+
+function calculateTotal(input) {
+    const row = input.closest('tr');
+    const price = parseFloat(row.querySelector('.item-price').value) || 0;
+    const quantity = parseInt(row.querySelector('.item-quantity').value) || 1;
+    const discount = parseFloat(row.querySelector('.item-discount').value) || 0;
+    const total = (price * quantity) - discount;
+    row.querySelector('.item-total').value = total.toFixed(2);
+    updateTotals();
+}
+
+function updateTotals() {
+    let subtotal = 0;
+    document.querySelectorAll('.item-total').forEach(input => {
+        subtotal += parseFloat(input.value) || 0;
     });
 
-    // Calculate totals
-    function calculateTotals() {
-        let subtotal = 0;
-        const items = document.querySelectorAll('.quote-item');
-        
-        items.forEach(item => {
-            const price = parseFloat(item.querySelector('[name="item_price[]"]').value) || 0;
-            const discount = parseFloat(item.querySelector('[name="item_discount_price[]"]').value) || 0;
-            subtotal += price - discount;
-        });
+    const gst = subtotal * 0.15;
+    const total = subtotal + gst;
 
-        const gst = subtotal * 0.15;
-        const total = subtotal + gst;
+    document.getElementById('subtotal').textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById('gst').textContent = `$${gst.toFixed(2)}`;
+    document.getElementById('total').textContent = `$${total.toFixed(2)}`;
+    
+    document.getElementById('total_amount').value = total.toFixed(2);
+    document.getElementById('tax_amount').value = gst.toFixed(2);
+}
 
-        document.getElementById('subtotal').value = subtotal.toFixed(2);
-        document.getElementById('gst').value = gst.toFixed(2);
-        document.getElementById('total').value = total.toFixed(2);
-    }
+// Form submission
+document.getElementById('edit-quote-form').addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    try {
+        const items = Array.from(document.querySelectorAll('.item-row')).map(row => ({
+            item_name: row.querySelector('[name$="[name]"]').value,
+            item_description: row.querySelector('[name$="[description]"]').value,
+            item_price: parseFloat(row.querySelector('[name$="[price]"]').value) || 0,
+            item_quantity: parseInt(row.querySelector('[name$="[quantity]"]').value) || 1,
+            item_discount_price: parseFloat(row.querySelector('[name$="[discount]"]').value) || 0,
+            item_total_price: parseFloat(row.querySelector('[name$="[total]"]').value) || 0
+        }));
 
-    // Initial calculation
-    calculateTotals();
-
-    // Form submission
-    document.getElementById('edit-quote-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Gather form data
         const formData = {
-            client_id: document.querySelector('[name="client_id"]').value,
-            client_name: document.querySelector('[name="client_name"]').value,
-            quote_property_address: document.querySelector('[name="quote_property_address"]').value,
-            contact_number: document.querySelector('[name="contact_number"]').value,
-            contact_email: document.querySelector('[name="contact_email"]').value,
-            quote_price: document.getElementById('total').value,
-            items: Array.from(document.querySelectorAll('.quote-item')).map(item => ({
-                quote_item_id: item.querySelector('[name="quote_item_id[]"]').value,
-                item_name: item.querySelector('[name="item_name[]"]').value,
-                item_description: item.querySelector('[name="item_description[]"]').value,
-                item_price: item.querySelector('[name="item_price[]"]').value,
-                item_discount_price: item.querySelector('[name="item_discount_price[]"]').value,
-                item_remark: item.querySelector('[name="item_remark[]"]').value
-            }))
+            client_id: document.getElementById('client_id').value,
+            quote_property_address: document.getElementById('quote_property_address').value,
+            contact_number: document.getElementById('contact_number').value,
+            contact_email: document.getElementById('contact_email').value,
+            total_amount: parseFloat(document.getElementById('total_amount').value),
+            tax_amount: parseFloat(document.getElementById('tax_amount').value),
+            items: items
         };
 
-        // Send request
-        fetch(`/quotes/${quoteId}/edit`, {
+        const response = await fetch('/quotes/<%= quote.quote_id %>/edit', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(formData)
-        })
-        .then(res => {
-            if (!res.ok) {
-                throw new Error('Network response was not ok');
-            }
-            return res.json();
-        })
-        .then(data => {
-            if (data.success) {
-                window.location.href = `/quotes/${quoteId}`;
-            } else {
-                throw new Error(data.message || 'Error updating quote');
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert(error.message);
         });
-    });
 
-    // Listen for price/discount changes
-    quoteItems.addEventListener('input', (e) => {
-        if (e.target.matches('[name="item_price[]"], [name="item_discount_price[]"]')) {
-            calculateTotals();
+        const result = await response.json();
+        
+        if (result.success) {
+            window.location.href = `/quotes/<%= quote.quote_id %>`;
+        } else {
+            throw new Error(result.message || 'Error updating quote');
         }
-    });
+    } catch (error) {
+        console.error('Error:', error);
+        alert(error.message || 'Failed to update quote. Please try again.');
+    }
 });
 </script>

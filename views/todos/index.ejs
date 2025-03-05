@@ -1,0 +1,384 @@
+<div class="card">
+    <div class="card-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">To-do List</h4>
+            <div class="btn-group">
+                <button class="btn btn-outline-secondary" onclick="previousMonth()">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+                <button class="btn btn-outline-secondary" id="currentMonth"></button>
+                <button class="btn btn-outline-secondary" onclick="nextMonth()">
+                    <i class="bi bi-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="calendar mb-4">
+            <div class="calendar-header d-flex">
+                <div class="calendar-cell">Sun</div>
+                <div class="calendar-cell">Mon</div>
+                <div class="calendar-cell">Tue</div>
+                <div class="calendar-cell">Wed</div>
+                <div class="calendar-cell">Thu</div>
+                <div class="calendar-cell">Fri</div>
+                <div class="calendar-cell">Sat</div>
+            </div>
+            <div id="calendar-body"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Todo Modal -->
+<div class="modal fade" id="todoModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Add To-do</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="todoForm" novalidate>
+                    <input type="hidden" id="todo_date" name="todo_date">
+                    <div class="mb-3">
+                        <label class="form-label">Title</label>
+                        <input type="text" 
+                               class="form-control" 
+                               id="todo_title" 
+                               name="todo_title" 
+                               required 
+                               minlength="3">
+                        <div class="invalid-feedback">
+                            Please enter a title (minimum 3 characters)
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea class="form-control" 
+                                  id="todo_description" 
+                                  name="todo_description" 
+                                  rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="saveTodo()">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.calendar {
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+}
+
+.calendar-header {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.calendar-cell {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-right: 1px solid #dee2e6;
+}
+
+.calendar-cell:last-child {
+    border-right: none;
+}
+
+.calendar-day {
+    position: relative;
+    min-height: 100px;
+    padding: 5px;
+    border-right: 1px solid #dee2e6;
+    border-bottom: 1px solid #dee2e6;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-day:hover {
+    background-color: #f8f9fa;
+}
+
+.todo-count {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.calendar-date {
+    font-weight: bold;
+    margin-bottom: 5px;
+}
+
+.calendar-row {
+    display: flex;
+}
+
+.calendar-day.past-date {
+    background-color: #f8f9fa;
+    color: #6c757d;
+}
+
+.calendar-day.current-date {
+    background-color: #fff3f3;
+    color: #dc3545;
+    border: 1px solid #dc3545;
+}
+
+.calendar-day.future-date {
+    background-color: #f0fff0;
+    color: #198754;
+}
+
+.calendar-day.empty {
+    background-color: #ffffff;
+    cursor: default;
+}
+
+.todo-list {
+    font-size: 0.8rem;
+    margin-top: 5px;
+    overflow-y: auto;
+    max-height: 65px;
+}
+
+.todo-item {
+    padding: 2px 5px;
+    margin-bottom: 2px;
+    border-radius: 3px;
+    background-color: rgba(13, 110, 253, 0.1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-content {
+    flex: 1;
+    overflow: hidden;
+}
+</style>
+
+<script>
+let currentDate = new Date();
+let todos = JSON.parse('<%- JSON.stringify(todos) %>');
+
+// Replace the existing renderCalendar function
+function renderCalendar() {
+    const year = currentDate.getFullYear();
+    const month = currentDate.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const startingDay = firstDay.getDay();
+    const monthLength = lastDay.getDate();
+    const today = new Date();
+
+    document.getElementById('currentMonth').textContent = 
+        new Date(year, month).toLocaleString('default', { month: 'long', year: 'numeric' });
+
+    const calendarBody = document.getElementById('calendar-body');
+    calendarBody.innerHTML = '';
+
+    let date = 1;
+    let row = document.createElement('div');
+    row.className = 'calendar-row';
+
+    // Fill in leading empty cells
+    for (let i = 0; i < startingDay; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-day flex-fill empty';
+        row.appendChild(cell);
+    }
+
+    while (date <= monthLength) {
+        if (row.children.length === 7) {
+            calendarBody.appendChild(row);
+            row = document.createElement('div');
+            row.className = 'calendar-row';
+        }
+
+        const cell = document.createElement('div');
+        const cellDate = new Date(year, month, date);
+        
+        // Determine date status
+        let dateStatus = '';
+        if (cellDate.toDateString() === today.toDateString()) {
+            dateStatus = 'current-date';
+        } else if (cellDate < today) {
+            dateStatus = 'past-date';
+        } else {
+            dateStatus = 'future-date';
+        }
+
+        cell.className = `calendar-day flex-fill ${dateStatus}`;
+        
+        // Create content container
+        const contentDiv = document.createElement('div');
+        contentDiv.className = 'calendar-content';
+
+        // Add date
+        const dateDiv = document.createElement('div');
+        dateDiv.className = 'calendar-date';
+        dateDiv.textContent = date;
+        contentDiv.appendChild(dateDiv);
+
+        // Add todos for this date
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+        const todosForDay = todos.filter(todo => todo.todo_date.startsWith(dateStr));
+        
+        if (todosForDay.length > 0) {
+            const countDiv = document.createElement('div');
+            countDiv.className = 'todo-count';
+            countDiv.textContent = todosForDay.length;
+            contentDiv.appendChild(countDiv);
+
+            // Add todo list
+            const todoList = document.createElement('div');
+            todoList.className = 'todo-list';
+            todosForDay.forEach(todo => {
+                const todoItem = document.createElement('div');
+                todoItem.className = 'todo-item';
+                todoItem.title = `${todo.todo_title}\n${todo.todo_description || ''}`;
+                todoItem.textContent = todo.todo_title;
+                todoList.appendChild(todoItem);
+            });
+            contentDiv.appendChild(todoList);
+        }
+
+        cell.appendChild(contentDiv);
+        
+        // Add click handler
+        cell.onclick = () => {
+            if (dateStatus !== 'past-date') {
+                showTodoModal(cellDate);
+            }
+        };
+
+        row.appendChild(cell);
+        date++;
+    }
+
+    // Fill in trailing empty cells
+    while (row.children.length < 7) {
+        const cell = document.createElement('div');
+        cell.className = 'calendar-day flex-fill empty';
+        row.appendChild(cell);
+    }
+
+    calendarBody.appendChild(row);
+}
+
+function previousMonth() {
+    currentDate.setMonth(currentDate.getMonth() - 1);
+    renderCalendar();
+}
+
+function nextMonth() {
+    currentDate.setMonth(currentDate.getMonth() + 1);
+    renderCalendar();
+}
+
+// Replace the existing showTodoModal function
+function showTodoModal(date) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    
+    if (date < today) {
+        alert('Cannot add todos for past dates');
+        return;
+    }
+    
+    document.getElementById('todo_date').value = date.toISOString().split('T')[0];
+    const modal = new bootstrap.Modal(document.getElementById('todoModal'));
+    modal.show();
+}
+
+// Update the saveTodo function
+async function saveTodo() {
+    const form = document.getElementById('todoForm');
+    
+    if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+    }
+
+    const formData = new FormData(form);
+    const todoData = Object.fromEntries(formData);
+    
+    try {
+        const response = await fetch('/todos/create', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(todoData)
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            // Add new todo to local array
+            todos.push(result.todo);
+            
+            // Clear form and hide modal
+            form.reset();
+            const modal = bootstrap.Modal.getInstance(document.getElementById('todoModal'));
+            modal.hide();
+            
+            // Refresh calendar
+            renderCalendar();
+            
+            // Show success message
+            showAlert('success', 'Todo created successfully');
+        } else {
+            throw new Error(result.message || 'Error creating todo');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('danger', error.message || 'Failed to create todo');
+    }
+}
+
+// Add this helper function for alerts
+function showAlert(type, message) {
+    const alertDiv = document.createElement('div');
+    alertDiv.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+    alertDiv.style.zIndex = '1050';
+    alertDiv.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alertDiv);
+    setTimeout(() => alertDiv.remove(), 3000);
+}
+
+// Initialize calendar
+document.addEventListener('DOMContentLoaded', () => {
+    renderCalendar();
+    
+    // Initialize tooltips
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[title]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
+    });
+});
+</script>

@@ -64,11 +64,12 @@
             <table class="table table-hover">
                 <thead class="table-light">
                     <tr>
-                        <th>Quote #</th>
+                        <th>Quote Number</th>
                         <th>Client</th>
+                        <th>Contact</th>
                         <th>Property Address</th>
                         <th>Date</th>
-                        <th class="text-end">Amount</th>
+                        <th >Amount</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -76,11 +77,12 @@
                     <% if (quotes && quotes.length > 0) { %>
                         <% quotes.forEach(quote => { %>
                             <tr>
-                                <td><%= quote.quote_id %></td>
+                                <td><%= quote.quote_number %></td>                            
                                 <td><%= quote.client_name %></td>
+                                <td><%= quote.contact_number %></td>
                                 <td><%= quote.quote_property_address %></td>
                                 <td><%= new Date(quote.quote_date).toLocaleDateString() %></td>
-                                <td class="text-end">$<%= quote.quote_price?.toFixed(2) %></td>
+                                <td >$<%= quote.total_amount?.toFixed(2) %></td>
                                 <td>
                                     <div class="btn-group">
                                         <a href="/quotes/<%= quote.quote_id %>" 

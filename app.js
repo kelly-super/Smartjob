@@ -47,6 +47,7 @@ const dashboardRoutes  = require('./routes/dashboardRoutes');
 const loginRoutes = require('./routes/loginRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const invoiceRoutes = require('./routes/invoiceRoutes');
+const todoRoutes = require('./routes/todoRoutes');
 // Protected routes - require authentication
 app.use(authMiddleware);
 app.use('/dashboard', dashboardRoutes);
@@ -61,6 +62,7 @@ app.use('/', loginRoutes);
 app.use('/login', loginRoutes);
 app.use('/profiles', profileRoutes);
 app.use('/invoices', invoiceRoutes);
+app.use('/todos', todoRoutes);
 app.use('/public', express.static(path.join(__dirname, 'public')));
 app.use('/uploads', express.static(path.join(__dirname, 'public/uploads')));
 // Default route to login if not authenticated

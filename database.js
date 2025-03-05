@@ -202,6 +202,19 @@ db.run(`CREATE TABLE IF NOT EXISTS invoice_items (
   FOREIGN KEY (invoice_id) REFERENCES invoices(invoice_id)
 )`);
 
+db.run(`CREATE TABLE IF NOT EXISTS todos (
+  todo_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  todo_date TEXT NOT NULL,
+  todo_title TEXT NOT NULL,
+  todo_description TEXT,
+  todo_status TEXT DEFAULT 'Pending',
+  send_email TEXT DEFAULT 'No',
+  send_sms TEXT DEFAULT 'No',
+  create_user_id INTEGER,
+  update_user_id INTEGER,
+  create_date TEXT DEFAULT CURRENT_TIMESTAMP,
+  update_date TEXT
+)`);
 // Insert test data
 // Insert test data only if the tables are empty
 db.get("SELECT COUNT(*) AS count FROM companies", (err, row) => {
