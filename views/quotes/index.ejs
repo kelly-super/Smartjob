@@ -105,6 +105,12 @@
                                                title="Download PDF">
                                                 <i class="bi bi-download"></i>
                                             </a>
+                                            <button type="button"
+                                                    class="btn btn-sm btn-info"
+                                                    onclick="sendQuoteEmail('<%= quote.quote_id %>')"
+                                                    title="Send Email">
+                                                <i class="bi bi-envelope"></i>
+                                            </button>
                                         <% } %>
                                     </div>
                                 </td>
@@ -198,5 +204,53 @@ async function generatePDF(quoteId) {
         button.disabled = false;
         button.innerHTML = '<i class="bi bi-file-pdf"></i>';
     }
+}
+
+// Add this after your existing generatePDF function
+async function sendQuoteEmail(quoteId) {
+    try {
+        const button = event.target.closest('button');
+        const originalContent = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+        const response = await fetch(`/quotes/${quoteId}/send-email`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to send email');
+        }
+
+        const result = await response.json();
+        
+        if (result.success) {
+            showAlert('success', 'Email sent successfully');
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        showAlert('danger', error.message || 'Failed to send email');
+    } finally {
+        button.disabled = false;
+        button.innerHTML = '<i class="bi bi-envelope"></i>';
+    }
+}
+
+// Add this helper function if not already present
+function showAlert(type, message) {
+    const alert = document.createElement('div');
+    alert.className = `alert alert-${type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+    alert.setAttribute('style', 'z-index: 1050');
+    alert.innerHTML = `
+        ${message}
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    document.body.appendChild(alert);
+    setTimeout(() => alert.remove(), 3000);
 }
 </script>

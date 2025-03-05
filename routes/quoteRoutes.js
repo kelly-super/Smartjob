@@ -4,6 +4,7 @@ const router = express.Router();
 const PDFDocument = require('pdfkit');
 const fs = require('fs');
 const path = require('path');
+const { sendQuoteEmail } = require('../services/emailService');
 
 // Add these routes before other quote routes
 router.get('/defaultsliding', async (req, res) => {
@@ -951,6 +952,49 @@ router.get('/:id/details', async (req, res) => {
     } catch (err) {
         console.error('Error fetching quote details:', err);
         res.status(500).json({ error: 'Error fetching quote details' });
+    }
+});
+
+// Add this new route
+router.post('/:id/send-email', async (req, res) => {
+    try {
+        const quoteId = req.params.id;
+        
+        // Get quote details with client email
+        const quote = await new Promise((resolve, reject) => {
+            db.get(`
+                SELECT q.*, c.client_email, 
+                       c.client_lastname || ' ' || c.client_surname as client_name
+                FROM quotes q
+                LEFT JOIN clients c ON c.client_id = q.client_id
+                WHERE q.quote_id = ?
+            `, [quoteId], (err, row) => {
+                if (err) reject(err);
+                if (!row) reject(new Error('Quote not found'));
+                resolve(row);
+            });
+        });
+
+        if (!quote.quote_pdf) {
+            throw new Error('PDF not generated yet');
+        }
+
+        const pdfPath = path.join(__dirname, '../public', quote.quote_pdf);
+        
+        const result = await sendQuoteEmail(quote, pdfPath, quote.client_email);
+        
+        if (result.success) {
+            res.json({ success: true, message: 'Email sent successfully' });
+        } else {
+            throw new Error(result.error);
+        }
+
+    } catch (err) {
+        console.error('Error sending email:', err);
+        res.status(500).json({ 
+            success: false, 
+            message: err.message || 'Failed to send email' 
+        });
     }
 });
 

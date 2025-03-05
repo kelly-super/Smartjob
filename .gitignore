@@ -5,3 +5,4 @@ public/quotepdfs/
 public/invoicepdfs/
 public/uploads/
 public/image/
+.env
