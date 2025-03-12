@@ -11,6 +11,7 @@
                     <input type="text" 
                            class="form-control" 
                            name="user_code" 
+                           id="user_code"
                            required>
                 </div>
                 
@@ -19,6 +20,7 @@
                     <input type="text" 
                            class="form-control" 
                            name="user_name" 
+                           id="user_name"
                            required>
                 </div>
 
@@ -27,6 +29,7 @@
                     <input type="password" 
                            class="form-control" 
                            name="user_password" 
+                           id="user_password"
                            required>
                 </div>
 
@@ -35,12 +38,13 @@
                     <input type="password" 
                            class="form-control" 
                            name="confirm_password" 
+                           id="confirm_password"
                            required>
                 </div>
 
                 <div class="col-md-6">
                     <label class="form-label">Role</label>
-                    <select class="form-select" name="user_role">
+                    <select class="form-select" name="user_role" id="user_role">
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
                     </select>
@@ -48,15 +52,15 @@
 
                 <div class="col-md-6">
                     <label class="form-label">Status</label>
-                    <select class="form-select" name="status">
+                    <select class="form-select" name="status" id="status">
                         <option value="Valid">Valid</option>
                         <option value="Invalid">Invalid</option>
                     </select>
                 </div>
 
                 <div class="col-12 text-end">
-                    <a href="/users" class="btn btn-secondary">Cancel</a>
-                    <button type="submit" class="btn btn-primary">Create User</button>
+                    <a href="/users" class="btn btn-secondary" id="cancel-button">Cancel</a>
+                    <button type="submit" class="btn btn-primary" id="create-user-button">Create User</button>
                 </div>
             </div>
         </form>

@@ -69,6 +69,36 @@
     </div>
 </div>
 
+<!-- Add this after your existing todoModal -->
+<div class="modal fade" id="todoDetailsModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Todo Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <dl class="row">
+                    <dt class="col-sm-3">Date:</dt>
+                    <dd class="col-sm-9" id="detail-date"></dd>
+                    
+                    <dt class="col-sm-3">Title:</dt>
+                    <dd class="col-sm-9" id="detail-title"></dd>
+                    
+                    <dt class="col-sm-3">Description:</dt>
+                    <dd class="col-sm-9" id="detail-description"></dd>
+                    
+                    <dt class="col-sm-3">Status:</dt>
+                    <dd class="col-sm-9" id="detail-status"></dd>
+                </dl>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <style>
 .calendar {
     border: 1px solid #dee2e6;
@@ -80,54 +110,30 @@
     border-bottom: 1px solid #dee2e6;
 }
 
+.calendar-row {
+    display: flex;
+    min-height: 120px;
+    border-bottom: 1px solid #dee2e6;
+}
+
 .calendar-cell {
     flex: 1;
     padding: 10px;
     text-align: center;
     border-right: 1px solid #dee2e6;
-}
-
-.calendar-cell:last-child {
-    border-right: none;
+    font-weight: 500;
 }
 
 .calendar-day {
-    position: relative;
-    min-height: 100px;
-    padding: 5px;
+    flex: 1;
+    padding: 8px;
     border-right: 1px solid #dee2e6;
-    border-bottom: 1px solid #dee2e6;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
+    position: relative;
+    background: white;
 }
 
-.calendar-day:hover {
+.calendar-day.empty {
     background-color: #f8f9fa;
-}
-
-.todo-count {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: #0d6efd;
-    color: white;
-    border-radius: 50%;
-    width: 20px;
-    height: 20px;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.calendar-date {
-    font-weight: bold;
-    margin-bottom: 5px;
-}
-
-.calendar-row {
-    display: flex;
 }
 
 .calendar-day.past-date {
@@ -146,31 +152,53 @@
     color: #198754;
 }
 
-.calendar-day.empty {
-    background-color: #ffffff;
-    cursor: default;
+.calendar-date {
+    font-weight: bold;
+    margin-bottom: 8px;
+    padding-right: 25px;
+}
+
+.todo-count {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background-color: #0d6efd;
+    color: white;
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .todo-list {
-    font-size: 0.8rem;
+    font-size: 0.85rem;
     margin-top: 5px;
     overflow-y: auto;
-    max-height: 65px;
+    max-height: 75px;
 }
 
 .todo-item {
-    padding: 2px 5px;
-    margin-bottom: 2px;
-    border-radius: 3px;
+    padding: 4px 8px;
+    margin-bottom: 4px;
+    border-radius: 4px;
     background-color: rgba(13, 110, 253, 0.1);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.calendar-content {
-    flex: 1;
-    overflow: hidden;
+.todo-item:hover {
+    background-color: rgba(13, 110, 253, 0.2);
+}
+
+.calendar-cell:last-child,
+.calendar-day:last-child {
+    border-right: none;
 }
 </style>
 
@@ -178,7 +206,7 @@
 let currentDate = new Date();
 let todos = JSON.parse('<%- JSON.stringify(todos) %>');
 
-// Replace the existing renderCalendar function
+// Update the renderCalendar function
 function renderCalendar() {
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
@@ -201,7 +229,7 @@ function renderCalendar() {
     // Fill in leading empty cells
     for (let i = 0; i < startingDay; i++) {
         const cell = document.createElement('div');
-        cell.className = 'calendar-day flex-fill empty';
+        cell.className = 'calendar-day empty';
         row.appendChild(cell);
     }
 
@@ -225,44 +253,45 @@ function renderCalendar() {
             dateStatus = 'future-date';
         }
 
-        cell.className = `calendar-day flex-fill ${dateStatus}`;
+        cell.className = `calendar-day ${dateStatus}`;
         
-        // Create content container
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'calendar-content';
-
-        // Add date
+        // Add date number
         const dateDiv = document.createElement('div');
         dateDiv.className = 'calendar-date';
         dateDiv.textContent = date;
-        contentDiv.appendChild(dateDiv);
+        cell.appendChild(dateDiv);
 
         // Add todos for this date
         const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-        const todosForDay = todos.filter(todo => todo.todo_date.startsWith(dateStr));
+        const todosForDay = todos.filter(todo => {
+            const todoDate = new Date(todo.todo_date);
+            return todoDate.getFullYear() === year &&
+                   todoDate.getMonth() === month &&
+                   todoDate.getDate() === date;
+        });
         
         if (todosForDay.length > 0) {
             const countDiv = document.createElement('div');
             countDiv.className = 'todo-count';
             countDiv.textContent = todosForDay.length;
-            contentDiv.appendChild(countDiv);
+            cell.appendChild(countDiv);
 
-            // Add todo list
             const todoList = document.createElement('div');
             todoList.className = 'todo-list';
             todosForDay.forEach(todo => {
                 const todoItem = document.createElement('div');
                 todoItem.className = 'todo-item';
-                todoItem.title = `${todo.todo_title}\n${todo.todo_description || ''}`;
+                todoItem.title = todo.todo_description || todo.todo_title;
                 todoItem.textContent = todo.todo_title;
+                todoItem.onclick = (e) => {
+                    e.stopPropagation();
+                    showTodoDetails(todo);
+                };
                 todoList.appendChild(todoItem);
             });
-            contentDiv.appendChild(todoList);
+            cell.appendChild(todoList);
         }
 
-        cell.appendChild(contentDiv);
-        
-        // Add click handler
         cell.onclick = () => {
             if (dateStatus !== 'past-date') {
                 showTodoModal(cellDate);
@@ -276,7 +305,7 @@ function renderCalendar() {
     // Fill in trailing empty cells
     while (row.children.length < 7) {
         const cell = document.createElement('div');
-        cell.className = 'calendar-day flex-fill empty';
+        cell.className = 'calendar-day empty';
         row.appendChild(cell);
     }
 
@@ -293,7 +322,7 @@ function nextMonth() {
     renderCalendar();
 }
 
-// Replace the existing showTodoModal function
+// Update the showTodoModal function to fix the date issue
 function showTodoModal(date) {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -303,12 +332,15 @@ function showTodoModal(date) {
         return;
     }
     
+    // Fix the date timezone issue
+    date.setMinutes(date.getMinutes() - date.getTimezoneOffset());
     document.getElementById('todo_date').value = date.toISOString().split('T')[0];
+    
     const modal = new bootstrap.Modal(document.getElementById('todoModal'));
     modal.show();
 }
 
-// Update the saveTodo function
+// Update the saveTodo function to fix the date issue
 async function saveTodo() {
     const form = document.getElementById('todoForm');
     
@@ -319,6 +351,11 @@ async function saveTodo() {
 
     const formData = new FormData(form);
     const todoData = Object.fromEntries(formData);
+    
+    // Fix the date timezone issue
+    const dateObj = new Date(todoData.todo_date);
+    dateObj.setMinutes(dateObj.getMinutes() - dateObj.getTimezoneOffset());
+    todoData.todo_date = dateObj.toISOString().split('T')[0];
     
     try {
         const response = await fetch('/todos/create', {
@@ -336,8 +373,11 @@ async function saveTodo() {
         const result = await response.json();
         
         if (result.success) {
-            // Add new todo to local array
-            todos.push(result.todo);
+            // Add new todo to local array with the corrected date
+            todos.push({
+                ...result.todo,
+                todo_date: todoData.todo_date
+            });
             
             // Clear form and hide modal
             form.reset();
@@ -356,6 +396,17 @@ async function saveTodo() {
         console.error('Error:', error);
         showAlert('danger', error.message || 'Failed to create todo');
     }
+}
+
+// Add this function after your existing functions
+function showTodoDetails(todo) {
+    document.getElementById('detail-date').textContent = new Date(todo.todo_date).toLocaleDateString();
+    document.getElementById('detail-title').textContent = todo.todo_title;
+    document.getElementById('detail-description').textContent = todo.todo_description || 'No description provided';
+    document.getElementById('detail-status').textContent = todo.todo_status;
+    
+    const detailsModal = new bootstrap.Modal(document.getElementById('todoDetailsModal'));
+    detailsModal.show();
 }
 
 // Add this helper function for alerts
